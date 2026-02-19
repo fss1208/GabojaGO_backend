@@ -5,6 +5,8 @@
 pip install python-dotenv
 pip install fastapi uvicorn
 pip install pymysql
+pip install pandas
+pip install numpy
 pip install PyJWT
 ```
 
