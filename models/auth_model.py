@@ -7,20 +7,20 @@ class LoginRequestModel(BaseModel):
     pw: str = Field(..., min_length=3, max_length=255, example="123")
 
     def check_query(self):
-        return f"SELECT * FROM user WHERE strUserID='{self.id}' AND strUserPW='{self.pw}'"
+        return f"SELECT * FROM user WHERE strUserID='{self.id.strip()}' AND strUserPW='{self.pw.strip()}'"
 
 class LoginResponseModel(BaseModel):
     access_token: str = Field(..., example="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9")
     token_type: str = Field(..., example="bearer")
 
 class UserModel(BaseModel):
-    pk: int = Field(..., example="0")
+    pk: Optional[int] = Field(0, example="0")
     id: str = Field(..., example="KSH")
     pw: str = Field(..., example="123")
     name: str = Field(..., example="김성호")
     email: str = Field(..., example="KSH@gmail.com")
-    phone: str = Field(..., example="010-1234-5678")
-    address: str = Field(..., example="서울특별시 도봉구")
+    phone: Optional[str] = Field(None, example="010-1234-5678")
+    address: Optional[str] = Field(None, example="서울특별시 도봉구")
     image_file: Optional[str] = Field(None, example="/profile/ksh.jpg")
 
     def __init__(self, row: tuple = None, **kwargs):
@@ -40,8 +40,8 @@ class UserModel(BaseModel):
             super().__init__(**kwargs)
 
     def check_validation(self):
-        if (self.id is None or self.pw is None or self.name is None or self.email is None or self.phone is None or self.address is None):
-            return False
+        # if (self.id is None or self.pw is None or self.name is None or self.email is None or self.phone is None or self.address is None):
+        #     return False
         return True
 
     @staticmethod
