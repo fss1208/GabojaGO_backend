@@ -15,6 +15,7 @@ pip install PyJWT
 - app : 코드 내에서 app = FastAPI()로 선언한 변수 이름
 ```bash
 uvicorn main:app --reload
+uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
 ### Python Vitual Environment (venv)

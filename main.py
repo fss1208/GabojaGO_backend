@@ -1,5 +1,6 @@
-from fastapi import FastAPI
 from dotenv import load_dotenv
+from fastapi import FastAPI
+import uvicorn
 import logging
 import os
 
@@ -23,3 +24,7 @@ app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 @app.get("/")
 async def root():
     return {"message": "메인 페이지"}
+
+if (__name__ == "__main__"):
+    uvicorn.run("main:app", host="0.0.0.0", port=8000)
+    # uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
