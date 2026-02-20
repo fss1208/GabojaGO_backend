@@ -20,16 +20,16 @@ logger.debug("LOG_LEVEL 설정 ({})".format(logging.getLevelName(log_level)))
 app = FastAPI(title="가보자GO", version="0.1.0", description="Backend API Specification")
 
 # 1. 허용할 출처(Origin) 목록 정의
-# origins = [
-#     "http://localhost:3000",      # React/Next.js 기본 포트
-#     "https://example.com"         # 실제 운영 도메인
-# ]
+origins = [
+    "http://localhost:3000",                    # React/Next.js 기본 포트
+    "https://gaboja-go-frontend.vercel.app"     # 실제 운영 도메인
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=origins,
+    allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*"]
 )
 
 # prefix: 모든 경로 앞에 '/auth'가 자동으로 붙음 (예: /auth/login)
