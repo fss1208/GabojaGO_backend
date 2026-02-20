@@ -5,6 +5,7 @@ import logging
 import os
 
 from routes import auth
+from routes import location
 
 load_dotenv(override=True)
 log_level = getattr(logging, os.getenv("LOG_LEVEL"), logging.INFO)
@@ -20,6 +21,7 @@ app = FastAPI(title="가보자GO", version="0.1.0", description="Backend API Spe
 # prefix: 모든 경로 앞에 '/auth'가 자동으로 붙음 (예: /auth/login)
 # tags: '/docs' & '/redoc' 페이지에서 해당 그룹으로 묶어서 표시
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
+app.include_router(location.router, prefix="/location", tags=["Location Management"])
 
 @app.get("/")
 async def root():
