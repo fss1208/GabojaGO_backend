@@ -8,6 +8,10 @@ pip install pymysql
 pip install pandas
 pip install numpy
 pip install PyJWT
+pip install openai
+pip install langchain
+pip install langchain-openai
+pip install pydantic
 ```
 
 ## 실행

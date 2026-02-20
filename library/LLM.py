@@ -12,14 +12,14 @@ from langchain_openai import ChatOpenAI
 logger = logging.getLogger(__name__)
 
 class CategoryModel(BaseModel):
-    category: Literal["F", "T", "S", "E"] = Field(..., description="예산에 사용된 카테고리 4가지(F:식비, T:교통비, S:숙박비, E:기타)중 하나")
+    category: Literal["F", "T", "L", "E"] = Field(..., description="예산에 사용된 카테고리 4가지(F:식비, T:교통비, L:숙박비, E:기타)중 하나")
 
 class TripGPT:
 
     def __init__(self, model_name: str):
         self._llm = ChatOpenAI(
             model = model_name,
-            temperature = 0,
+            temperature = 0
         )
 
 class CategoryGPT(TripGPT):
@@ -32,16 +32,16 @@ class CategoryGPT(TripGPT):
             ("system",
              "너는 카카오 지도 API에서 받은 장소 정보를 기반으로 예산 카테고리를 분류하는 AI다. "
              "반드시 다음 4가지 중 하나만 선택하라: "
-             "F:식비, T:교통비, S:숙박비, E:기타. "
+             "F:식비, T:교통비, L:숙박비, E:기타. "
              "기타는 숙박비, 식비, 교통비를 제외한 나머지 분류이다. "
              "다른 설명은 하지 말고 JSON 형식으로만 답하라. "
              ),
             ("system", "{format_instructions}"),
             ("human", 
              "다음은 카카오 지도 API에서 받은 장소 정보이다.\n\n"
-             "장소명: {place_name}\n"
-             "카테고리 그룹명: {category_group_name}\n"
-             "카테고리 전체명: {category_name}\n\n"
+             "place_name: {place_name}\n"
+             "category_group_name: {category_group_name}\n"
+             "category_name: {category_name}\n\n"
              "이 장소를 예산 카테고리로 분류하라."
              )
         ]).partial(format_instructions=output_parser.get_format_instructions())
