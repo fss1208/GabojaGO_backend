@@ -41,9 +41,9 @@ def register(user_model: UserModel):
                 logger.error(msg)
                 raise HTTPException(status_code=500, detail=msg)
             connection.commit()
-            user_model.id = cursor.lastrowid
+            user_model.pk = cursor.lastrowid
     logger.info(f"회원가입 성공 ({user_model})")
-    return user_model.model_dump()
+    return user_model
 
 @router.post("/login", summary="로그인", response_model=LoginResponseModel)
 def login(request_model: LoginRequestModel):
@@ -68,12 +68,12 @@ def login(request_model: LoginRequestModel):
             logger.debug(f"UserModel({user_model})")
     # 로그인 성공 시 토큰 생성
     token = AuthJWT.create_token(user_model)
-    response = LoginResponseModel(
+    response_model = LoginResponseModel(
         access_token = token,
         token_type = "bearer"
     )
     logger.info(f"로그인 성공 ({user_model.id} {user_model.name})")
-    return response.model_dump()
+    return response_model
 
 @router.get("/test", summary="사용자 인증 확인")
 def test(auth: HTTPAuthorizationCredentials = Depends(security)):
