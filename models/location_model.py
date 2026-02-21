@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional
 import logging
 
-from library.DB import DATABASE
+from library.DB import DB
 
 class KakaoMapSearchRequestModel(BaseModel):
     query: str = Field(..., max_length=255, example="성산일출봉")   # 검색어
@@ -70,19 +70,19 @@ class LocationModel(BaseModel):
 
     def insert_query(self) -> str:
         return "INSERT INTO location (iID,ptLongLat,strName,chCategory,strGroupName,strGroupDetail,strAddress,strPhone,strLink,dtCreate) VALUES ('{0}',{1},'{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}')".format(
-            self.id, DATABASE.TO_POINT(self.longitude, self.latitude), self.name, self.category, self.group_name, self.group_detail, self.address, self.phone, self.link, self.datetime)
+            self.id, DB.TO_POINT(self.longitude, self.latitude), self.name, self.category, self.group_name, self.group_detail, self.address, self.phone, self.link, self.datetime)
 
 ####################################################################################################################################################
 
 if (__name__ == "__main__"):
-    from library.DB import DATABASE
+    from library.DB import DB
     from dotenv import load_dotenv
     load_dotenv(override=True)
     logging.basicConfig(level=logging.DEBUG)
-    with DATABASE.CONNECT() as connection:
+    with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
-            DATABASE.SHOW_TABLES(cursor)
-            DATABASE.EXECUTE(cursor, "DROP TABLE IF EXISTS location")
-            DATABASE.SHOW_TABLES(cursor)
-            DATABASE.EXECUTE(cursor, LocationModel.CREATE_TABLE())
-            DATABASE.SHOW_TABLES(cursor)
+            DB.SHOW_TABLES(cursor)
+            DB.EXECUTE(cursor, "DROP TABLE IF EXISTS location")
+            DB.SHOW_TABLES(cursor)
+            DB.EXECUTE(cursor, LocationModel.CREATE_TABLE())
+            DB.SHOW_TABLES(cursor)

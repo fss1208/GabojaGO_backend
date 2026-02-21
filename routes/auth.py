@@ -4,8 +4,8 @@ from fastapi import APIRouter
 from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from models.auth_model import UserModel, LoginRequestModel, LoginResponseModel
-from library.DB import DATABASE
 from library.JWT import AuthJWT
+from library.DB import DB
 import pandas as pd
 import logging
 import os
@@ -17,18 +17,18 @@ logger = logging.getLogger(__name__)
 @router.post("/register", summary="회원가입", response_model=UserModel)
 def register(user_model: UserModel):
     logger.debug(f"Request Body {user_model.model_dump()}")
-    with DATABASE.CONNECT() as connection:
+    with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
-            result = DATABASE.EXECUTE(cursor, user_model.select_query())
+            result = DB.EXECUTE(cursor, user_model.select_query())
             if (result != 0):
                 raise HTTPException(status_code=401, detail=f"사용자 ID 중복! (id={user_model.id}, result={result})")
             if (user_model.check_validation() == False):
                 raise HTTPException(status_code=401, detail="유효하지 않은 데이터!")
-            result = DATABASE.EXECUTE(cursor, user_model.insert_query())
+            result = DB.EXECUTE(cursor, user_model.insert_query())
             if (result != 1):
                 raise HTTPException(status_code=401, detail=f"회원정보 추가 실패! (id={user_model.id}, result={result})")
             connection.commit()
-            result = DATABASE.EXECUTE(cursor, user_model.select_query())
+            result = DB.EXECUTE(cursor, user_model.select_query())
             if (result != 1):
                 raise HTTPException(status_code=401, detail=f"회원정보 찾기 실패! (id={user_model.id}, result={result})")
             rows_tuple = cursor.fetchall()
@@ -45,9 +45,9 @@ def login(user: LoginRequestModel):
     user_model = None
     name = os.getenv("DBNAME")
     logger.debug(f"Request Body ({user})")
-    with DATABASE.CONNECT(name) as connection:
+    with DB.CONNECT(name) as connection:
         with connection.cursor() as cursor:
-            result = DATABASE.EXECUTE(cursor, user.check_query())
+            result = DB.EXECUTE(cursor, user.check_query())
             if (result == 0):
                 raise HTTPException(status_code=401, detail="아이디 또는 비밀번호 불일치!")
             rows_tuple = cursor.fetchall()

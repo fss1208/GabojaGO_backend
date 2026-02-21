@@ -69,14 +69,14 @@ class UserModel(BaseModel):
 ####################################################################################################################################################
 
 if (__name__ == "__main__"):
-    from library.DB import DATABASE
+    from library.DB import DB
     from dotenv import load_dotenv
     load_dotenv(override=True)
     logging.basicConfig(level=logging.DEBUG)
-    with DATABASE.CONNECT() as connection:
+    with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
-            DATABASE.SHOW_TABLES(cursor)
-            DATABASE.EXECUTE(cursor, "DROP TABLE IF EXISTS user")
-            DATABASE.SHOW_TABLES(cursor)
-            DATABASE.EXECUTE(cursor, UserModel.CREATE_TABLE())
-            DATABASE.SHOW_TABLES(cursor)
+            DB.SHOW_TABLES(cursor)
+            DB.EXECUTE(cursor, "DROP TABLE IF EXISTS user")
+            DB.SHOW_TABLES(cursor)
+            DB.EXECUTE(cursor, UserModel.CREATE_TABLE())
+            DB.SHOW_TABLES(cursor)

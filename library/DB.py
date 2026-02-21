@@ -18,7 +18,7 @@ class DatabaseException(Exception):
     def Message(self):
         return self.m_strMessage
 
-class DATABASE:
+class DB:
 
     TUPLE_SYMBOL = "%s" # MySQL
     CHARSET = "utf8"
@@ -26,7 +26,7 @@ class DATABASE:
 
     @staticmethod
     def TO_POINT(longitude: str, latitude: str) -> str:
-        return f"ST_GeomFromText('POINT({longitude} {latitude})', {DATABASE.SRID})"
+        return f"ST_GeomFromText('POINT({longitude} {latitude})', {DB.SRID})"
 
     @staticmethod
     def CONNECT(name: str = None):
@@ -38,7 +38,7 @@ class DATABASE:
                 port=int(os.getenv("DBPORT")),
                 user=os.getenv("DBUSER"), 
                 passwd=os.getenv("DBPSWD"),
-                charset=DATABASE.CHARSET
+                charset=DB.CHARSET
             )
             logger.info("DATABASE 연결 성공 ({}:{}, {:,.2f}msec)".format(connection.host, connection.port, (datetime.now() - dt).microseconds/1000))
             if name:
@@ -51,7 +51,7 @@ class DATABASE:
     @staticmethod
     def SHOW_TABLES(cursor):
         try:
-            DATABASE.EXECUTE(cursor, "SHOW TABLES")
+            DB.EXECUTE(cursor, "SHOW TABLES")
             logger.info(cursor.fetchall())
         except Exception as e:
             logger.error("[{}] {}".format(type(e), e))

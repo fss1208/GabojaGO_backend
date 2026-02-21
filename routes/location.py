@@ -7,7 +7,7 @@ from library.LLM import CategoryGPT
 from library.MAP import KakaoMAP
 from library.JWT import AuthJWT
 from library.LOG import LOG
-from library.DB import DATABASE
+from library.DB import DB
 
 from datetime import datetime, timedelta
 import logging
@@ -39,18 +39,18 @@ def register_location(location_model: LocationModel):
     """
     dt = datetime.now()
     logger.info(f"요청 수신 ({location_model})")
-    with DATABASE.CONNECT() as connection:
+    with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
-            result = DATABASE.EXECUTE(cursor, LocationModel.SELECT_ID_QUERY(location_model.id))
+            result = DB.EXECUTE(cursor, LocationModel.SELECT_ID_QUERY(location_model.id))
             if (result != 0):
                 logger.error(f"처리 실패! (이미 등록된 장소)")
                 raise HTTPException(status_code=500, detail="장소 등록 실패")
-            result = DATABASE.EXECUTE(cursor, location_model.insert_query())
+            result = DB.EXECUTE(cursor, location_model.insert_query())
             connection.commit()
             if (result != 1):
                 logger.error(f"처리 실패! (장소 등록 실패)")
                 raise HTTPException(status_code=500, detail="장소 등록 실패")
             location_model.pk = cursor.lastrowid
     logger.info(f"처리 완료 ({location_model.pk}:{location_model.name}, {LOG.TO_ESTIMATED_TIME(dt)})")
-    return {"message": f"등록 완료"}
+    return {"message": f"등록 완료 ({location_model.pk}:{location_model.name})"}
  
