@@ -22,6 +22,11 @@ class DATABASE:
 
     TUPLE_SYMBOL = "%s" # MySQL
     CHARSET = "utf8"
+    SRID = 4326
+
+    @staticmethod
+    def TO_POINT(longitude: str, latitude: str) -> str:
+        return f"ST_GeomFromText('POINT({longitude} {latitude})', {DATABASE.SRID})"
 
     @staticmethod
     def CONNECT(name: str = None):

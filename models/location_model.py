@@ -2,6 +2,8 @@ from pydantic import BaseModel, Field
 from typing import Optional
 import logging
 
+from library.DB import DATABASE
+
 class KakaoMapSearchRequestModel(BaseModel):
     query: str = Field(..., max_length=255, example="성산일출봉")   # 검색어
     x: Optional[str] = Field(None, example="126.9194")                          # 경도 (Longitude)
@@ -11,7 +13,7 @@ class KakaoMapSearchRequestModel(BaseModel):
     size: Optional[int] = Field(None, ge=0, le=15, example=15)                  # 결과 개수 (최대 15)
 
 class LocationModel(BaseModel):
-    pk: int = Field(..., example=1)
+    pk: int = Field(..., example=0)
     id: int = Field(..., example=2062374957)
     name: str = Field(..., max_length=255, example="청년취업사관학교 도봉캠퍼스")
     longitude: str = Field(..., example="127.1005")
@@ -22,6 +24,7 @@ class LocationModel(BaseModel):
     address: Optional[str] = Field(None, max_length=255, example="서울특별시 도봉구 마들로13길 61 씨드큐브 창동 7층")
     phone: Optional[str] = Field(None, example="02-6249-7402")
     link: Optional[str] = Field(None, max_length=255, example="http://place.map.kakao.com/2062374957")
+    datetime: Optional[str] = Field(None, example="2026-02-21 15:01:31")
 
     def __init__(self, row: tuple = None, **kwargs):
         if row is not None and isinstance(row, tuple):
@@ -36,7 +39,8 @@ class LocationModel(BaseModel):
                 "group_detail": row[7],
                 "address": row[8],
                 "phone": row[9],
-                "link": row[10]
+                "link": row[10],
+                "datetime": row[11]
             }
             super().__init__(**data)
         else:
@@ -54,10 +58,19 @@ class LocationModel(BaseModel):
                 strGroupName VARCHAR(128),
                 strGroupDetail VARCHAR(128),
                 strAddress VARCHAR(128),
-                strLink VARCHAR(128),
+                strPhone VARCHAR(128),
+                strLink VARCHAR(1024),
                 dtCreate DATETIME DEFAULT CURRENT_TIMESTAMP,
                 SPATIAL INDEX(ptLongLat)      
             );"""
+
+    @staticmethod
+    def SELECT_ID_QUERY(id: int) -> str:
+        return "SELECT * FROM location WHERE iID = {0}".format(id)
+
+    def insert_query(self) -> str:
+        return "INSERT INTO location (iID,ptLongLat,strName,chCategory,strGroupName,strGroupDetail,strAddress,strPhone,strLink,dtCreate) VALUES ('{0}',{1},'{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}')".format(
+            self.id, DATABASE.TO_POINT(self.longitude, self.latitude), self.name, self.category, self.group_name, self.group_detail, self.address, self.phone, self.link, self.datetime)
 
 ####################################################################################################################################################
 

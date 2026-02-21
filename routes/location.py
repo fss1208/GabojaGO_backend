@@ -6,6 +6,7 @@ from models.location_model import LocationModel, KakaoMapSearchRequestModel
 from library.LLM import CategoryGPT
 from library.MAP import KakaoMAP
 from library.JWT import AuthJWT
+from library.DB import DATABASE
 
 from datetime import datetime, timedelta
 import logging
@@ -29,3 +30,26 @@ def search_keyword_kakaomap(request: Request, search_param: KakaoMapSearchReques
     location_dict = KakaoMAP.search_keyword(search_param)
     logger.info(f"{request.url.path} 처리 완료 ({(datetime.now() - dt).total_seconds() * 1000:.2f} ms)")
     return location_dict
+
+@router.post("/register", summary="장소 등록")
+def register_location(location_model: LocationModel):
+    """
+    사용자가 요청하는 장소를 추가
+    """
+    dt = datetime.now()
+    logger.info(f"요청 수신 ({location_model})")
+    with DATABASE.CONNECT() as connection:
+        with connection.cursor() as cursor:
+            result = DATABASE.EXECUTE(cursor, LocationModel.SELECT_ID_QUERY(location_model.id))
+            if (result != 0):
+                logger.error(f"처리 실패 (이미 존재하는 장소입니다, {(datetime.now() - dt).total_seconds() * 1000:.2f} ms)")
+                raise HTTPException(status_code=500, detail="장소 등록 실패")
+            result = DATABASE.EXECUTE(cursor, location_model.insert_query())
+            connection.commit()
+            if (result != 1):
+                logger.error(f"처리 실패 ({(datetime.now() - dt).total_seconds() * 1000:.2f} ms)")
+                raise HTTPException(status_code=500, detail="장소 등록 실패")
+            location_model.pk = cursor.lastrowid
+    logger.info(f"처리 완료 ({(datetime.now() - dt).total_seconds() * 1000:.2f} ms)")
+    return {"message": f"장소가 성공적으로 등록되었습니다. ({location_model.pk}:{location_model.name})"}
+ 
