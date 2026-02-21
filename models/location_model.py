@@ -72,6 +72,12 @@ class LocationModel(BaseModel):
         return "INSERT INTO location (iID,ptLongLat,strName,chCategory,strGroupName,strGroupDetail,strAddress,strPhone,strLink,dtCreate) VALUES ('{0}',{1},'{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}')".format(
             self.id, DB.TO_POINT(self.longitude, self.latitude), self.name, self.category, self.group_name, self.group_detail, self.address, self.phone, self.link, self.datetime)
 
+    def delete_query(self) -> str:
+        return "DELETE FROM location WHERE iID = {0}".format(self.id)
+
+    def to_log(self) -> str:
+        return f"{self.pk}:{self.name}:{self.id}"
+
 ####################################################################################################################################################
 
 if (__name__ == "__main__"):
