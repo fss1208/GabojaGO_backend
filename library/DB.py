@@ -44,6 +44,15 @@ class DATABASE:
             raise DatabaseException(str(e))
 
     @staticmethod
+    def SHOW_TABLES(cursor):
+        try:
+            DATABASE.EXECUTE(cursor, "SHOW TABLES")
+            logger.info(cursor.fetchall())
+        except Exception as e:
+            logger.error("[{}] {}".format(type(e), e))
+            raise DatabaseException(str(e))
+
+    @staticmethod
     def EXECUTE(cursor, query: str):
         try:
             dt = datetime.now()

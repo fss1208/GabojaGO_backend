@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional
-import pandas as pd
+import logging
 
 class LoginRequestModel(BaseModel):
     id: str = Field(..., min_length=3, max_length=255, example="KSH")
@@ -45,25 +45,24 @@ class UserModel(BaseModel):
         return True
 
     @staticmethod
-    def CREATE_TABLE():
+    def CREATE_TABLE() -> str:
         return """
-CREATE TABLE user (
-    iPK INT AUTO_INCREMENT PRIMARY KEY,
-    strUserID VARCHAR(255) NOT NULL UNIQUE,
-    strUserPW VARCHAR(255) NOT NULL,
-    strName VARCHAR(255) NOT NULL,
-    strEmail VARCHAR(255) NOT NULL,
-    strPhone VARCHAR(255),
-    strAddress VARCHAR(255),
-    strImageFile VARCHAR(255),
-    dtCreate DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-"""
+            CREATE TABLE user (
+                iPK INT AUTO_INCREMENT PRIMARY KEY,
+                strUserID VARCHAR(255) NOT NULL UNIQUE,
+                strUserPW VARCHAR(255) NOT NULL,
+                strName VARCHAR(255) NOT NULL,
+                strEmail VARCHAR(255) NOT NULL,
+                strPhone VARCHAR(255),
+                strAddress VARCHAR(255),
+                strImageFile VARCHAR(255),
+                dtCreate DATETIME DEFAULT CURRENT_TIMESTAMP
+            );"""
     
-    def select_query(self):
+    def select_query(self) -> str:
         return f"SELECT * FROM user WHERE strUserID='{self.id}'"
 
-    def insert_query(self):
+    def insert_query(self) -> str:
         return "INSERT INTO user (strUserID, strUserPW, strName, strEmail, strPhone, strAddress, strImageFile) " + \
                         f"VALUES ('{self.id}', '{self.pw}', '{self.name}', '{self.email}', '{self.phone}', '{self.address}', '{self.image_file}')"
 
@@ -72,10 +71,12 @@ CREATE TABLE user (
 if (__name__ == "__main__"):
     from library.DB import DATABASE
     from dotenv import load_dotenv
-    import logging
     load_dotenv(override=True)
     logging.basicConfig(level=logging.DEBUG)
     with DATABASE.CONNECT() as connection:
         with connection.cursor() as cursor:
+            DATABASE.SHOW_TABLES(cursor)
             DATABASE.EXECUTE(cursor, "DROP TABLE IF EXISTS user")
+            DATABASE.SHOW_TABLES(cursor)
             DATABASE.EXECUTE(cursor, UserModel.CREATE_TABLE())
+            DATABASE.SHOW_TABLES(cursor)

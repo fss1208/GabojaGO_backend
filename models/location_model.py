@@ -41,3 +41,35 @@ class LocationModel(BaseModel):
             super().__init__(**data)
         else:
             super().__init__(**kwargs)
+
+    @staticmethod
+    def CREATE_TABLE() -> str:
+        return """
+            CREATE TABLE location (
+                iPK INT AUTO_INCREMENT PRIMARY KEY,
+                iID INT NOT NULL UNIQUE,
+                ptLongLat POINT NOT NULL,
+                strName VARCHAR(128) NOT NULL,
+                chCategory CHAR(1) NOT NULL,
+                strGroupName VARCHAR(128),
+                strGroupDetail VARCHAR(128),
+                strAddress VARCHAR(128),
+                strLink VARCHAR(128),
+                dtCreate DATETIME DEFAULT CURRENT_TIMESTAMP,
+                SPATIAL INDEX(ptLongLat)      
+            );"""
+
+####################################################################################################################################################
+
+if (__name__ == "__main__"):
+    from library.DB import DATABASE
+    from dotenv import load_dotenv
+    load_dotenv(override=True)
+    logging.basicConfig(level=logging.DEBUG)
+    with DATABASE.CONNECT() as connection:
+        with connection.cursor() as cursor:
+            DATABASE.SHOW_TABLES(cursor)
+            DATABASE.EXECUTE(cursor, "DROP TABLE IF EXISTS location")
+            DATABASE.SHOW_TABLES(cursor)
+            DATABASE.EXECUTE(cursor, LocationModel.CREATE_TABLE())
+            DATABASE.SHOW_TABLES(cursor)
