@@ -40,12 +40,28 @@ class CategoryGPT(TripGPT):
             ("human", 
              "다음은 카카오 지도 API에서 받은 장소 정보이다.\n\n"
              "place_name: {place_name}\n"
-             "category_group_name: {category_group_name}\n"
              "category_name: {category_name}\n\n"
+             "category_group_name: {category_group_name}\n"
              "이 장소를 예산 카테고리로 분류하라."
              )
         ]).partial(format_instructions=output_parser.get_format_instructions())
         self.chain = prompt | self._llm | output_parser
 
+    def run(self, place_name: str, category_name: str, category_group_name: str) -> CategoryModel:
+        chain_dict = {
+            "place_name": place_name,
+            "category_name": category_name,
+            "category_group_name": category_group_name
+        }
+        logger.debug(f"[{type(chain_dict)}] {chain_dict}")
+        result_model = self.chain.invoke(chain_dict)
+        logger.debug(f"[{type(result_model)}] {result_model}")
+        return result_model
+
 if (__name__ == "__main__"):
-    pass
+    logging.basicConfig(level=logging.DEBUG)
+    llm = CategoryGPT()
+    llm.run("한화리조트 해운대", "여행 > 숙박 > 콘도,리조트 > 한화리조트", "숙박")
+    llm.run("성산일출봉 주차장", "교통,수송 > 교통시설 > 주차장", "주차장")
+    llm.run("성산바다풍경 제주성산일출봉점", "음식점 > 한식", "음식점")
+    llm.run("성산일출봉 정상전망대", "여행 > 관광,명소 > 전망대", "관광명소")
