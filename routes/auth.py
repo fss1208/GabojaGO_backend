@@ -4,8 +4,9 @@ from fastapi import APIRouter
 from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
+from database.user_table import UserTable
+from models.auth_model import UserModel
 from models.auth_model import LoginRequestModel, LoginResponseModel
-from models.auth_model import UserModel, UserTable
 from library.JWT import AUTH_JWT
 from library.DB import DB
 import pandas as pd
@@ -20,17 +21,17 @@ logger = logging.getLogger(__name__)
 def register(user_model: UserModel):
     """
     회원가입
-    - **id**: 필수 입력
-    - **pw**: 필수 입력
-    - **name**: 필수 입력
-    - **email**: 필수 입력
+    - **strUserID**: 필수 입력
+    - **strUserPW**: 필수 입력
+    - **strName**: 필수 입력
+    - **strEmail**: 필수 입력
     """    
     logger.info(f"회원가입 요청 ({user_model})")
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, UserTable.TO_SELECT_MODEL_QUERY(user_model))
             if (result != 0):
-                msg = f"회원가입 실패! (사용자 ID 중복 : id={user_model.id}, result={result})"
+                msg = f"회원가입 실패! (사용자 ID 중복 : id={user_model.strUserID}, result={result})"
                 logger.error(msg)
                 raise HTTPException(status_code=400, detail=msg)
             if (user_model.check_validation() == False):
@@ -39,11 +40,11 @@ def register(user_model: UserModel):
                 raise HTTPException(status_code=400, detail=msg)
             result = DB.EXECUTE(cursor, UserTable.TO_INSERT_QUERY(user_model))
             if (result != 1):
-                msg = f"회원가입 실패! (DB 등록 실패 : id={user_model.id}, result={result})"
+                msg = f"회원가입 실패! (DB 등록 실패 : id={user_model.strUserID}, result={result})"
                 logger.error(msg)
                 raise HTTPException(status_code=500, detail=msg)
             connection.commit()
-            user_model.pk = cursor.lastrowid
+            user_model.iPK = cursor.lastrowid
     logger.info(f"회원가입 성공 ({user_model})")
     return user_model
 
@@ -51,10 +52,10 @@ def register(user_model: UserModel):
 def login(request_model: LoginRequestModel):
     """
     아이디와 비밀번호를 받아 유효한 경우 JWT 토큰을 반환
-    - **id**: 필수 입력
-    - **pw**: 필수 입력
+    - **strUserID**: 필수 입력
+    - **strUserPW**: 필수 입력
     """
-    logger.info(f"로그인 요청 ({request_model.id})")
+    logger.info(f"로그인 요청 ({request_model.strUserID})")
     logger.debug(f"Request ({request_model})")
     user_model = None
     dbname = os.getenv("DBNAME")
@@ -62,7 +63,7 @@ def login(request_model: LoginRequestModel):
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, UserTable.TO_SELECT_LOGIN_QUERY(request_model))
             if (result == 0):
-                msg = f"로그인 실패! (아이디 또는 비밀번호 불일치 : {request_model.id})"
+                msg = f"로그인 실패! (아이디 또는 비밀번호 불일치 : {request_model.strUserID})"
                 logger.error(msg)
                 raise HTTPException(status_code=400, detail=msg)
             rows_tuple = cursor.fetchall()
@@ -74,11 +75,11 @@ def login(request_model: LoginRequestModel):
         access_token = token,
         token_type = "bearer"
     )
-    logger.info(f"로그인 성공 ({user_model.id} {user_model.name})")
+    logger.info(f"로그인 성공 ({user_model.strUserID} {user_model.strName})")
     return response_model
 
 @router.get("/test", summary="사용자 인증 확인")
 def test(auth: HTTPAuthorizationCredentials = Depends(security)):
     user_model = AUTH_JWT.TO_USER_MODEL(auth)
     logger.debug(f"UserModel({user_model})")
-    return {"message": f"{user_model.name}님이 인증되었습니다! ({user_model.id})"}
+    return {"message": f"{user_model.strName}님이 인증되었습니다! ({user_model.strUserID})"}

@@ -14,10 +14,10 @@ class AUTH_JWT:
     @staticmethod
     def CREATE_TOKEN(user: UserModel, minutes: int = 30):
         data = {
-            "pk": user.pk, 
-            "id": user.id, 
-            "name": user.name, 
-            "email": user.email
+            "iPK": user.iPK, 
+            "strUserID": user.strUserID, 
+            "strName": user.strName, 
+            "strEmail": user.strEmail
         }
         to_encode = data.copy()
         expire = datetime.utcnow() + timedelta(minutes) # 정해진 시간동안 유효한 토큰 생성
@@ -32,14 +32,14 @@ class AUTH_JWT:
             SECRET_KEY = os.getenv("SECRET_KEY")
             payload = jwt.decode(token, SECRET_KEY, algorithms=[AUTH_JWT.ALGORITHM])
             user_model = UserModel(
-                pk=payload.get("pk"),
-                id=payload.get("id"),
-                pw="",
-                name=payload.get("name"),
-                email=payload.get("email"),
-                phone="",
-                address="",
-                image_file=""
+                iPK=payload.get("iPK"),
+                strUserID=payload.get("strUserID"),
+                strUserPW="",
+                strName=payload.get("strName"),
+                strEmail=payload.get("strEmail"),
+                strPhone="",
+                strAddress="",
+                strImageFile=""
             )
             return user_model
         except jwt.ExpiredSignatureError:
