@@ -7,6 +7,7 @@ import os
 
 from routes import auth
 from routes import location
+from routes import schedule
 
 load_dotenv(override=True)
 log_level = getattr(logging, os.getenv("LOG_LEVEL"), logging.INFO)
@@ -36,6 +37,7 @@ app.add_middleware(
 # tags: '/docs' & '/redoc' 페이지에서 해당 그룹으로 묶어서 표시
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(location.router, prefix="/location", tags=["Location Management"])
+app.include_router(schedule.router, prefix="/schedule", tags=["Schedule Management"])
 
 @app.get("/")
 async def root():
