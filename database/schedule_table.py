@@ -49,8 +49,7 @@ class ScheduleTable(BaseTable):
                 chStatus CHAR(1) NOT NULL DEFAULT 'P',              -- P:준비, A:여행중, C:완료
                 dtCreate DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (iUserFK) REFERENCES user(iPK)
-            );
-        """
+            );"""
 
     @staticmethod
     def TO_SELECT_MODEL_QUERY(sm: ScheduleModel) -> str:
@@ -71,7 +70,7 @@ if (__name__ == "__main__"):
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
             DB.SHOW_TABLES(cursor)
-            DB.EXECUTE(cursor, "DROP TABLE IF EXISTS schedule")
+            DB.EXECUTE(cursor, f"DROP TABLE IF EXISTS {ScheduleTable.NAME}")
             DB.SHOW_TABLES(cursor)
             DB.EXECUTE(cursor, ScheduleTable.TO_CREATE_QUERY())
             DB.SHOW_TABLES(cursor)

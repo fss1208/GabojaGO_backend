@@ -21,3 +21,13 @@ class ScheduleModel(BaseModel):
 
     def to_log(self) -> str:
         return f"{self.iPK}:{self.iUserFK}:{self.dtDate1}:{self.dtDate2}:{self.strWhere}"
+
+class ScheduleLocationModel(BaseModel):
+    iPK: Optional[int] = Field(default=0, example="1", description="일정 ID")
+    iScheduleFK: int = Field(..., example="1", description="일정 ID")
+    iLocationFK: int = Field(..., example="2062374957", description="장소 ID")
+    dtSchedule: str = Field(..., example="2026-02-23 15:11:23", description="yyyy-MM-dd HH:mm:ss")
+    strMemo: Optional[str] = Field(None, example="장소 메모", description="메모")
+
+    def to_log(self) -> str:
+        return f"{self.iPK}:{self.iScheduleFK}:{self.iLocationFK}:{self.dtSchedule}"
