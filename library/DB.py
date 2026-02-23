@@ -18,6 +18,12 @@ class DatabaseException(Exception):
     def Message(self):
         return self.m_strMessage
 
+class BaseTable:
+
+    def __init__(self, rows_tuples: tuple):
+        self.rows_tuples = rows_tuples
+
+
 class DB:
 
     TUPLE_SYMBOL = "%s" # MySQL

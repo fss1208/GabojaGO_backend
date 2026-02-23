@@ -6,7 +6,7 @@ from models.location_model import KakaoMapSearchRequestModel
 from models.location_model import LocationModel, LocationTable
 from library.LLM import CategoryGPT
 from library.MAP import KAKAO_MAP
-from library.JWT import AuthJWT
+from library.JWT import AUTH_JWT
 from library.LOG import LOG
 from library.DB import DB
 

@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional
 import logging
 
-from library.DB import DB
+from library.DB import DB, BaseTable
 
 class KakaoMapSearchRequestModel(BaseModel):
     query: str = Field(..., max_length=255, example="성산일출봉")    # 검색어
@@ -30,10 +30,7 @@ class LocationModel(BaseModel):
     def to_log(self) -> str:
         return f"{self.id}:{self.name}"
 
-class LocationTable:
-
-    def __init__(self, rows_tuples: tuple):
-        self.rows_tuples = rows_tuples
+class LocationTable(BaseTable):
 
     def to_models(self) -> list[LocationModel]:
         return [self.TO_MODEL(row) for row in self.rows_tuples]
@@ -55,7 +52,7 @@ class LocationTable:
         )
 
     @staticmethod
-    def CREATE() -> str:
+    def TO_CREATE_QUERY() -> str:
         return """
             CREATE TABLE location (
                 iPK BIGINT UNSIGNED PRIMARY KEY,
@@ -83,8 +80,7 @@ class LocationTable:
     @staticmethod
     def TO_INSERT_QUERY(lm: LocationModel) -> str:
         return "INSERT INTO location (iPK,strName,strGroupCode,strGroupName,strGroupDetail,strAddress,strPhone,strLink,chCategory,ptLongLat) " + \
-                             "VALUES ({iPK},'{strName}','{strGroupCode}','{strGroupName}','{strGroupDetail}','{strAddress}','{strPhone}','{strLink}','{chCategory}',{ptLongLat})".format(
-                                iPK=lm.id, strName=lm.name, strGroupCode=lm.group_code, strGroupName=lm.group_name, strGroupDetail=lm.group_detail, strAddress=lm.address, strPhone=lm.phone, strLink=lm.link, chCategory=lm.category, ptLongLat=DB.TO_POINT(lm.longitude, lm.latitude))
+                            f"VALUES ({lm.id},'{lm.name}','{lm.group_code}','{lm.group_name}','{lm.group_detail}','{lm.address}','{lm.phone}','{lm.link}','{lm.category}',{DB.TO_POINT(lm.longitude, lm.latitude)})"
 
     @staticmethod
     def TO_DELETE_QUERY(lm: LocationModel) -> str:
@@ -102,5 +98,5 @@ if (__name__ == "__main__"):
             DB.SHOW_TABLES(cursor)
             DB.EXECUTE(cursor, "DROP TABLE IF EXISTS location")
             DB.SHOW_TABLES(cursor)
-            DB.EXECUTE(cursor, LocationTable.CREATE())
+            DB.EXECUTE(cursor, LocationTable.TO_CREATE_QUERY())
             DB.SHOW_TABLES(cursor)

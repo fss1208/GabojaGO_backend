@@ -2,12 +2,11 @@ from pydantic import BaseModel, Field
 from typing import Optional
 import logging
 
+from library.DB import DB, BaseTable
+
 class LoginRequestModel(BaseModel):
     id: str = Field(..., min_length=3, max_length=255, example="KSH")
     pw: str = Field(..., min_length=3, max_length=255, example="123")
-
-    def check_query(self):
-        return f"SELECT * FROM user WHERE strUserID='{self.id.strip()}' AND strUserPW='{self.pw.strip()}'"
 
 class LoginResponseModel(BaseModel):
     access_token: str = Field(..., example="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9")
@@ -23,29 +22,28 @@ class UserModel(BaseModel):
     address: Optional[str] = Field(None, example="서울특별시 도봉구")
     image_file: Optional[str] = Field(None, example="/profile/ksh.jpg")
 
-    def __init__(self, row: tuple = None, **kwargs):
-        if row is not None and isinstance(row, tuple):
-            data = {
-                "pk": row[0],
-                "id": row[1],
-                "pw": row[2],
-                "name": row[3],
-                "email": row[4],
-                "phone": row[5],
-                "address": row[6],
-                "image_file": row[7]
-            }
-            super().__init__(**data)
-        else:
-            super().__init__(**kwargs)
-
     def check_validation(self):
         # if (self.id is None or self.pw is None or self.name is None or self.email is None or self.phone is None or self.address is None):
         #     return False
         return True
 
+class UserTable(BaseTable):
+
     @staticmethod
-    def CREATE_TABLE() -> str:
+    def TO_MODEL(row: tuple) -> UserModel:
+        return UserModel(
+            pk=row[0],
+            id=row[1],
+            pw=row[2],
+            name=row[3],
+            email=row[4],
+            phone=row[5],
+            address=row[6],
+            image_file=row[7]
+        )
+
+    @staticmethod
+    def TO_CREATE_QUERY() -> str:
         return """
             CREATE TABLE user (
                 iPK INT AUTO_INCREMENT PRIMARY KEY,
@@ -58,13 +56,19 @@ class UserModel(BaseModel):
                 strImageFile VARCHAR(255),
                 dtCreate DATETIME DEFAULT CURRENT_TIMESTAMP
             );"""
-    
-    def select_query(self) -> str:
-        return f"SELECT * FROM user WHERE strUserID='{self.id}'"
 
-    def insert_query(self) -> str:
-        return "INSERT INTO user (strUserID, strUserPW, strName, strEmail, strPhone, strAddress, strImageFile) " + \
-                        f"VALUES ('{self.id}', '{self.pw}', '{self.name}', '{self.email}', '{self.phone}', '{self.address}', '{self.image_file}')"
+    @staticmethod
+    def TO_SELECT_LOGIN_QUERY(login_model: LoginRequestModel) -> str:
+        return f"SELECT * FROM user WHERE strUserID='{login_model.id.strip()}' AND strUserPW='{login_model.pw.strip()}'"
+    
+    @staticmethod
+    def TO_SELECT_MODEL_QUERY(user_model: UserModel) -> str:
+        return "SELECT * FROM user WHERE strUserID='{0}'".format(user_model.id)
+
+    @staticmethod
+    def TO_INSERT_QUERY(user_model: UserModel) -> str:
+        return "INSERT INTO user (strUserID,strUserPW,strName,strEmail,strPhone,strAddress,strImageFile) " + \
+                        f"VALUES ('{user_model.id}','{user_model.pw}','{user_model.name}','{user_model.email}','{user_model.phone}','{user_model.address}','{user_model.image_file}')"
 
 ####################################################################################################################################################
 
@@ -78,5 +82,5 @@ if (__name__ == "__main__"):
             DB.SHOW_TABLES(cursor)
             DB.EXECUTE(cursor, "DROP TABLE IF EXISTS user")
             DB.SHOW_TABLES(cursor)
-            DB.EXECUTE(cursor, UserModel.CREATE_TABLE())
+            DB.EXECUTE(cursor, UserTable.TO_CREATE_QUERY())
             DB.SHOW_TABLES(cursor)

@@ -24,9 +24,6 @@ class KAKAO_MAP:
             logger.debug(f"RESPONSE {json.dumps(response_dict, indent=4, ensure_ascii=False)}")
             result_dict = {}
             for i, loc_dict in enumerate(response_dict["documents"]):
-                # if ("category_group_code" in params):
-                #     if (len(loc_dict["category_group_code"]) == 0) or (params["category_group_code"] != loc_dict["category_group_code"]):
-                #         continue
                 location_model = LocationModel(
                     id=int(loc_dict["id"]),
                     name=loc_dict["place_name"],

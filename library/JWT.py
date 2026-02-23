@@ -7,42 +7,39 @@ from models.auth_model import UserModel
 import jwt
 import os
 
-class AuthJWT:
+class AUTH_JWT:
 
     ALGORITHM = "HS256"
     
     @staticmethod
-    def create_token(user: UserModel, minutes: int = 30):
+    def CREATE_TOKEN(user: UserModel, minutes: int = 30):
         data = {
             "pk": user.pk, 
             "id": user.id, 
             "name": user.name, 
-            "email": user.email, 
-            "phone": user.phone, 
-            "address": user.address, 
-            "image_file": user.image_file
+            "email": user.email
         }
         to_encode = data.copy()
         expire = datetime.utcnow() + timedelta(minutes) # 정해진 시간동안 유효한 토큰 생성
         to_encode.update({"exp": expire})
         secret_key = os.getenv("SECRET_KEY")
-        return jwt.encode(to_encode, secret_key, algorithm=AuthJWT.ALGORITHM)
+        return jwt.encode(to_encode, secret_key, algorithm=AUTH_JWT.ALGORITHM)
 
     @staticmethod
-    def get_user_model(auth: HTTPAuthorizationCredentials) -> UserModel:
+    def TO_USER_MODEL(auth: HTTPAuthorizationCredentials) -> UserModel:
         token = auth.credentials
         try:
             SECRET_KEY = os.getenv("SECRET_KEY")
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[AuthJWT.ALGORITHM])
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[AUTH_JWT.ALGORITHM])
             user_model = UserModel(
                 pk=payload.get("pk"),
                 id=payload.get("id"),
-                pw="***************",
+                pw="",
                 name=payload.get("name"),
                 email=payload.get("email"),
-                phone=payload.get("phone"),
-                address=payload.get("address"),
-                image_file=payload.get("image_file")
+                phone="",
+                address="",
+                image_file=""
             )
             return user_model
         except jwt.ExpiredSignatureError:
