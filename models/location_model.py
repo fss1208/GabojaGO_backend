@@ -5,78 +5,90 @@ import logging
 from library.DB import DB
 
 class KakaoMapSearchRequestModel(BaseModel):
-    query: str = Field(..., max_length=255, example="성산일출봉")   # 검색어
-    x: Optional[str] = Field(None, example="126.9194")                          # 경도 (Longitude)
-    y: Optional[str] = Field(None, example="33.4918")                           # 위도 (Latitude)
-    radius: Optional[int] = Field(None, example=1000)                           # 반경 (미터)
-    page: Optional[int] = Field(None, example=1)                                # 페이지 번호
-    size: Optional[int] = Field(None, ge=0, le=15, example=15)                  # 결과 개수 (최대 15)
+    query: str = Field(..., max_length=255, example="성산일출봉")    # 검색어
+    category_group_code: Optional[str] = Field(None, example="AT4") # 카테고리 그룹 코드
+    x: Optional[str] = Field(None, example="126.9194")              # 경도 (Longitude)
+    y: Optional[str] = Field(None, example="33.4918")               # 위도 (Latitude)
+    radius: Optional[int] = Field(None, example=1000)               # 반경 (단위: meter, 최소:0, 최대:20,000)
+    rect: Optional[str] = Field(None, example="1.2,3.48,5.6,7.8")   # 두 점의 좌표로 만든 범위 (좌측X, 좌측Y, 우측X, 우측Y)
+    page: Optional[int] = Field(None, example=1)                    # 결과 페이지 번호 (최소:1, 최대:45, 기본값:1)
+    size: Optional[int] = Field(None, ge=1, le=15, example=15)      # 한 페이지에 보여질 문서의 개수 (최소:1, 최대:15, 기본값:15)
 
 class LocationModel(BaseModel):
-    pk: int = Field(..., example=0)
     id: int = Field(..., example=2062374957)
     name: str = Field(..., max_length=255, example="청년취업사관학교 도봉캠퍼스")
+    group_code: str = Field(..., example="FD6")
+    group_name: str = Field(..., example="교육센터")
+    group_detail: str = Field(..., example="교육,학문 > 직업전문교육")
+    address: str = Field(..., max_length=255, example="서울특별시 도봉구 마들로13길 61 씨드큐브 창동 7층")
+    phone: str = Field(..., example="02-6249-7402")
+    link: str = Field(..., max_length=255, example="http://place.map.kakao.com/2062374957")
+    category: str = Field(..., example="E")
     longitude: str = Field(..., example="127.1005")
     latitude: str = Field(..., example="37.5115")
-    category: str = Field(..., example="E")
-    group_name: Optional[str] = Field(None, example="교육센터")
-    group_detail: Optional[str] = Field(None, example="교육,학문 > 직업전문교육")
-    address: Optional[str] = Field(None, max_length=255, example="서울특별시 도봉구 마들로13길 61 씨드큐브 창동 7층")
-    phone: Optional[str] = Field(None, example="02-6249-7402")
-    link: Optional[str] = Field(None, max_length=255, example="http://place.map.kakao.com/2062374957")
-    datetime: Optional[str] = Field(None, example="2026-02-21 15:01:31")
 
-    def __init__(self, row: tuple = None, **kwargs):
-        if row is not None and isinstance(row, tuple):
-            data = {
-                "pk": row[0],
-                "id": row[1],
-                "longitude": row[2],
-                "latitude": row[3],
-                "name": row[4],
-                "category": row[5],
-                "group_name": row[6],
-                "group_detail": row[7],
-                "address": row[8],
-                "phone": row[9],
-                "link": row[10],
-                "datetime": row[11]
-            }
-            super().__init__(**data)
-        else:
-            super().__init__(**kwargs)
+    def to_log(self) -> str:
+        return f"{self.id}:{self.name}"
+
+class LocationTable:
+
+    def __init__(self, rows_tuples: tuple):
+        self.rows_tuples = rows_tuples
+
+    def to_models(self) -> list[LocationModel]:
+        return [self.TO_MODEL(row) for row in self.rows_tuples]
 
     @staticmethod
-    def CREATE_TABLE() -> str:
+    def TO_MODEL(row: tuple) -> LocationModel:
+        return LocationModel(
+            id=row[0],
+            name=row[1],
+            group_code=row[2],
+            group_name=row[3],
+            group_detail=row[4],
+            address=row[5],
+            phone=row[6],
+            link=row[7],
+            category=row[8],
+            longitude=row[9],
+            latitude=row[10]
+        )
+
+    @staticmethod
+    def CREATE() -> str:
         return """
             CREATE TABLE location (
-                iPK INT AUTO_INCREMENT PRIMARY KEY,
-                iID INT NOT NULL UNIQUE,
-                ptLongLat POINT NOT NULL,
+                iPK BIGINT UNSIGNED PRIMARY KEY,
                 strName VARCHAR(128) NOT NULL,
-                chCategory CHAR(1) NOT NULL,
+                strGroupCode CHAR(3),
                 strGroupName VARCHAR(128),
                 strGroupDetail VARCHAR(128),
                 strAddress VARCHAR(128),
                 strPhone VARCHAR(128),
                 strLink VARCHAR(1024),
+                chCategory CHAR(1) NOT NULL DEFAULT 'E',
+                ptLongLat POINT NOT NULL,
                 dtCreate DATETIME DEFAULT CURRENT_TIMESTAMP,
                 SPATIAL INDEX(ptLongLat)      
             );"""
 
     @staticmethod
-    def SELECT_ID_QUERY(id: int) -> str:
-        return "SELECT * FROM location WHERE iID = {0}".format(id)
+    def TO_SELECT_MODEL_QUERY(lm: LocationModel) -> str:
+        return "SELECT iPK,strName,strGroupCode,strGroupName,strGroupDetail,strAddress,strPhone,strLink,chCategory,ST_X(ptLongLat),ST_Y(ptLongLat) FROM location WHERE iPK={0}".format(lm.id)
 
-    def insert_query(self) -> str:
-        return "INSERT INTO location (iID,ptLongLat,strName,chCategory,strGroupName,strGroupDetail,strAddress,strPhone,strLink,dtCreate) VALUES ('{0}',{1},'{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}')".format(
-            self.id, DB.TO_POINT(self.longitude, self.latitude), self.name, self.category, self.group_name, self.group_detail, self.address, self.phone, self.link, self.datetime)
+    @staticmethod
+    def TO_SELECT_ID_QUERY(lm: LocationModel) -> str:
+        return "SELECT iPK,strName FROM location WHERE iPK={0}".format(lm.id)
 
-    def delete_query(self) -> str:
-        return "DELETE FROM location WHERE iID = {0}".format(self.id)
+    @staticmethod
+    def TO_INSERT_QUERY(lm: LocationModel) -> str:
+        return "INSERT INTO location (iPK,strName,strGroupCode,strGroupName,strGroupDetail,strAddress,strPhone,strLink,chCategory,ptLongLat) " + \
+                             "VALUES ({iPK},'{strName}','{strGroupCode}','{strGroupName}','{strGroupDetail}','{strAddress}','{strPhone}','{strLink}','{chCategory}',{ptLongLat})".format(
+                                iPK=lm.id, strName=lm.name, strGroupCode=lm.group_code, strGroupName=lm.group_name, strGroupDetail=lm.group_detail, strAddress=lm.address, strPhone=lm.phone, strLink=lm.link, chCategory=lm.category, ptLongLat=DB.TO_POINT(lm.longitude, lm.latitude))
 
-    def to_log(self) -> str:
-        return f"{self.pk}:{self.name}:{self.id}"
+    @staticmethod
+    def TO_DELETE_QUERY(lm: LocationModel) -> str:
+        return "DELETE FROM location WHERE iPK={0}".format(lm.id)
 
 ####################################################################################################################################################
 
@@ -90,5 +102,5 @@ if (__name__ == "__main__"):
             DB.SHOW_TABLES(cursor)
             DB.EXECUTE(cursor, "DROP TABLE IF EXISTS location")
             DB.SHOW_TABLES(cursor)
-            DB.EXECUTE(cursor, LocationModel.CREATE_TABLE())
+            DB.EXECUTE(cursor, LocationTable.CREATE())
             DB.SHOW_TABLES(cursor)

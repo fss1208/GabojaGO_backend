@@ -2,9 +2,10 @@ from fastapi import APIRouter, Request
 from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from models.location_model import LocationModel, KakaoMapSearchRequestModel
+from models.location_model import KakaoMapSearchRequestModel
+from models.location_model import LocationModel, LocationTable
 from library.LLM import CategoryGPT
-from library.MAP import KakaoMAP
+from library.MAP import KAKAO_MAP
 from library.JWT import AuthJWT
 from library.LOG import LOG
 from library.DB import DB
@@ -28,7 +29,7 @@ def search_keyword_kakaomap(request: Request, search_param: KakaoMapSearchReques
     """
     dt = datetime.now()
     logger.info(f"{request.url.path} 요청 수신 ({search_param})")
-    location_dict = KakaoMAP.search_keyword(search_param)
+    location_dict = KAKAO_MAP.SEARCH_KEYWORD(search_param)
     logger.info(f"{request.url.path} 처리 완료 ({LOG.TO_ESTIMATED_TIME(dt)})")
     return location_dict
 
@@ -41,17 +42,17 @@ def register_location(location_model: LocationModel):
     logger.info(f"장소 등록 요청 ({location_model.to_log()})")
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
-            result = DB.EXECUTE(cursor, LocationModel.SELECT_ID_QUERY(location_model.id))
+            result = DB.EXECUTE(cursor, LocationTable.TO_SELECT_ID_QUERY(location_model))
             if (result != 0):
                 msg = f"장소 등록 실패! (이미 등록된 장소, {location_model.to_log()})"
                 logger.error(msg)
                 raise HTTPException(status_code=400, detail=msg)
-            result = DB.EXECUTE(cursor, location_model.insert_query())
+            result = DB.EXECUTE(cursor, LocationTable.TO_INSERT_QUERY(location_model))
             if (result != 1):
                 msg = f"장소 등록 실패! (DB 등록 실패, {location_model.to_log()})"
                 logger.error(msg)
                 raise HTTPException(status_code=500, detail=msg)
-            location_model.pk = cursor.lastrowid
+            location_model.id = cursor.lastrowid
             connection.commit()
     logger.info(f"장소 등록 완료 ({location_model.to_log()}, {LOG.TO_ESTIMATED_TIME(dt)})")
     return {"message": f"등록 완료 ({location_model.to_log()})"}
@@ -65,7 +66,7 @@ def unregister_location(location_model: LocationModel):
     logger.info(f"장소 등록 취소 요청 ({location_model.to_log()})")
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
-            result = DB.EXECUTE(cursor, location_model.delete_query())
+            result = DB.EXECUTE(cursor, LocationTable.TO_DELETE_QUERY(location_model))
             if (result == 0):
                 msg = f"장소 등록 취소 실패! (등록되지 않은 장소, {location_model.to_log()})"
                 logger.error(msg)
