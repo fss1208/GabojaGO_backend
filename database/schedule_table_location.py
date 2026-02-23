@@ -41,6 +41,10 @@ class ScheduleLocationTable(BaseTable):
         return f"INSERT INTO {ScheduleLocationTable.NAME} (iScheduleFK,iLocationFK,dtSchedule,strMemo) " + \
             f"VALUES ({slm.iScheduleFK},{slm.iLocationFK},'{slm.dtSchedule}','{slm.strMemo}')"
 
+    @staticmethod
+    def TO_DELETE_QUERY(slm: ScheduleLocationModel) -> str:
+        return f"DELETE FROM {ScheduleLocationTable.NAME} WHERE iPK={slm.iPK}"
+
 ####################################################################################################################################################
 
 if (__name__ == "__main__"):
