@@ -1,5 +1,5 @@
 from models.location_model import KakaoMapSearchRequestModel
-from models.location_model import LocationModel, LocationTable
+from models.location_model import LocationModel
 
 import requests
 import logging
@@ -25,17 +25,17 @@ class KAKAO_MAP:
             result_dict = {}
             for i, loc_dict in enumerate(response_dict["documents"]):
                 location_model = LocationModel(
-                    id=int(loc_dict["id"]),
-                    name=loc_dict["place_name"],
-                    group_code=loc_dict["category_group_code"],
-                    group_name=loc_dict["category_group_name"],
-                    group_detail=loc_dict["category_name"],
-                    address=loc_dict["address_name"],
-                    phone=loc_dict["phone"],
-                    link=loc_dict["place_url"],
-                    category=KAKAO_MAP.TO_CATEGORY(loc_dict["category_group_code"]),
-                    longitude=loc_dict["x"],
-                    latitude=loc_dict["y"]
+                    iPK=int(loc_dict["id"]),
+                    strName=loc_dict["place_name"],
+                    strGroupCode=loc_dict["category_group_code"],
+                    strGroupName=loc_dict["category_group_name"],
+                    strGroupDetail=loc_dict["category_name"],
+                    strAddress=loc_dict["address_name"],
+                    strPhone=loc_dict["phone"],
+                    strLink=loc_dict["place_url"],
+                    chCategory=KAKAO_MAP.TO_CATEGORY(loc_dict["category_group_code"]),
+                    ptLongitude=loc_dict["x"],
+                    ptLatitude=loc_dict["y"]
                 )
                 model_dict = location_model.model_dump()
                 result_dict[str(i)] = model_dict

@@ -2,8 +2,9 @@ from fastapi import APIRouter, Request
 from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
+from database.location_table import LocationTable
+from models.location_model import LocationModel
 from models.location_model import KakaoMapSearchRequestModel
-from models.location_model import LocationModel, LocationTable
 from library.LLM import CategoryGPT
 from library.MAP import KAKAO_MAP
 from library.JWT import AUTH_JWT
@@ -52,7 +53,7 @@ def register_location(location_model: LocationModel):
                 msg = f"장소 등록 실패! (DB 등록 실패, {location_model.to_log()})"
                 logger.error(msg)
                 raise HTTPException(status_code=500, detail=msg)
-            location_model.id = cursor.lastrowid
+            location_model.iPK = cursor.lastrowid
             connection.commit()
     logger.info(f"장소 등록 완료 ({location_model.to_log()}, {LOG.TO_ESTIMATED_TIME(dt)})")
     return {"message": f"등록 완료 ({location_model.to_log()})"}
