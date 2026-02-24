@@ -20,6 +20,10 @@ class ScheduleLocationTable(BaseTable):
         )
 
     @staticmethod
+    def TO_MODEL_LIST(rows_tuples: tuple) -> list[ScheduleLocationModel]:
+        return [ScheduleLocationTable.TO_MODEL(row) for row in rows_tuples]
+
+    @staticmethod
     def TO_CREATE_QUERY() -> str:
         return f"""
             CREATE TABLE {ScheduleLocationTable.NAME} (
@@ -35,6 +39,10 @@ class ScheduleLocationTable(BaseTable):
     @staticmethod
     def TO_SELECT_MODEL_QUERY(slm: ScheduleLocationModel) -> str:
         return f"SELECT * FROM {ScheduleLocationTable.NAME} WHERE iPK={slm.iPK}"
+
+    @staticmethod
+    def TO_SELECT_LIST_QUERY(iScheduleFK: int) -> str:
+        return f"SELECT * FROM {ScheduleLocationTable.NAME} WHERE iScheduleFK={iScheduleFK} ORDER BY dtSchedule"
 
     @staticmethod
     def TO_INSERT_QUERY(slm: ScheduleLocationModel) -> str:

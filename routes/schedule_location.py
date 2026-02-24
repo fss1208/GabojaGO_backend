@@ -3,7 +3,7 @@ from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from database.schedule.schedule_location_table import ScheduleLocationTable
-from models.schedule_model import ScheduleLocationModel
+from models.schedule_model import ScheduleLocationModel, ScheduleLocationListModel
 from library.JWT import AUTH_JWT
 from library.LOG import LOG
 from library.DB import DB
@@ -19,10 +19,10 @@ logger = logging.getLogger(__name__)
 
 #################################################################################################################
 
-@router.post("/append", summary="일정 장소 추가", response_model=ScheduleLocationModel)
+@router.post("/append", summary="일정에 장소 등록", response_model=ScheduleLocationModel)
 def append_location(schedule_location_model: ScheduleLocationModel):
     """
-    여행 일정에 장소 추가 (수동)
+    여행 일정에 장소 등록 (수동)
     """
     dt = datetime.now()
     logger.info(f"일정에 장소 추가 요청 ({schedule_location_model.to_log()})")
@@ -38,10 +38,10 @@ def append_location(schedule_location_model: ScheduleLocationModel):
     logger.info(f"일정에 장소 추가 완료 ({schedule_location_model.to_log()}, {LOG.TO_ESTIMATED_TIME(dt)})")
     return schedule_location_model
 
-@router.post("/remove", summary="일정 장소 삭제", response_model=ScheduleLocationModel)
+@router.post("/remove", summary="일정에 등록된 장소 삭제", response_model=ScheduleLocationModel)
 def remove_location(schedule_location_model: ScheduleLocationModel):
     """
-    여행 일정에 장소 삭제 (수동)
+    여행 일정에 등록된 장소 삭제 (수동)
     """
     dt = datetime.now()
     logger.info(f"일정에 장소 삭제 요청 ({schedule_location_model.to_log()})")
@@ -55,3 +55,24 @@ def remove_location(schedule_location_model: ScheduleLocationModel):
             connection.commit()
     logger.info(f"일정에 장소 삭제 완료 ({schedule_location_model.to_log()}, {LOG.TO_ESTIMATED_TIME(dt)})")
     return schedule_location_model
+
+@router.get("/list", summary="일정에 등록된 장소 목록 조회", response_model=ScheduleLocationListModel)
+def list_schedule(iSchedulePK: int):
+    """
+    여행 일정에 등록된 장소 목록 조회
+    """
+    dt = datetime.now()
+    req_log = f"일정:{iSchedulePK}"
+    text_log = "일정에 등록된 장소 목록 조회"
+    logger.info(f"{text_log} 요청 ({req_log})")
+    with DB.CONNECT() as connection:
+        with connection.cursor() as cursor:
+            result = DB.EXECUTE(cursor, ScheduleLocationTable.TO_SELECT_LIST_QUERY(iSchedulePK))
+            rows_tuples = cursor.fetchall()
+            if (result != len(rows_tuples)):
+                msg = f"{text_log} 실패! (데이터 개수 불일치, {req_log}, 요청:{result}, 실제:{len(rows_tuples)})"
+                logger.error(msg)
+                raise HTTPException(status_code=500, detail=msg)
+            schedule_location_list_model = ScheduleLocationListModel(location_list=ScheduleLocationTable.TO_MODEL_LIST(rows_tuples))
+    logger.info(f"{text_log} 완료 ({req_log}:{result}개, {LOG.TO_ESTIMATED_TIME(dt)})")
+    return schedule_location_list_model

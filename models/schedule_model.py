@@ -1,5 +1,6 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 from typing import Optional
+from datetime import datetime
 import logging
 
 class ScheduleModel(BaseModel):
@@ -22,15 +23,27 @@ class ScheduleModel(BaseModel):
     def to_log(self) -> str:
         return f"{self.iPK}:{self.iUserFK}:{self.dtDate1}:{self.dtDate2}:{self.strWhere}"
 
+###############################################################################################################################################################
+
 class ScheduleLocationModel(BaseModel):
     iPK: Optional[int] = Field(default=0, example="1", description="일정 ID")
     iScheduleFK: int = Field(..., example="1", description="일정 ID")
     iLocationFK: int = Field(..., example="2062374957", description="장소 ID")
-    dtSchedule: str = Field(..., example="2026-02-23 15:11:23", description="yyyy-MM-dd HH:mm:ss")
+    dtSchedule: datetime = Field(..., example="2026-02-23 15:11:23", description="yyyy-MM-dd HH:mm:ss")
     strMemo: Optional[str] = Field(None, example="장소 메모", description="메모")
 
+    @field_serializer('dtSchedule')
+    def serialize_dt(self, dt: datetime, _info):
+        return dt.strftime('%Y-%m-%d %H:%M:%S')
+    
     def to_log(self) -> str:
         return f"{self.iPK}:{self.iScheduleFK}:{self.iLocationFK}:{self.dtSchedule}"
+
+class ScheduleLocationListModel(BaseModel):
+    location_list: list[ScheduleLocationModel] = Field(..., description="일정 장소 목록", 
+        example="[{'iPK': 1, 'iScheduleFK': 1, 'iLocationFK': 2062374957, 'dtSchedule': '2026-02-23 15:11:23', 'strMemo': '장소 메모'}, ...]")
+
+###############################################################################################################################################################
 
 class ScheduleUserModel(BaseModel):
     iPK: Optional[int] = Field(default=0, example="1")
