@@ -19,13 +19,15 @@ logger = logging.getLogger(__name__)
 
 #################################################################################################################
 
-@router.post("/register", summary="일정 참여자 등록", response_model=ScheduleUserModel)
-def register_schedule_user(schedule_user_model: ScheduleUserModel):
+@router.post("/register", summary="일정 동행자 등록", response_model=ScheduleUserModel)
+def register_schedule_user(schedule_user_model: ScheduleUserModel, request: Request):
     """
-    여행 일정 참여자 등록
+    사용자가 요청하는 동행자를 일정에 등록
+    - **ScheduleUserModel.iSchedulePK: int** 필수 입력
+    - **ScheduleUserModel.iUserPK: int** 필수 입력
     """
     dt = datetime.now()
-    text_log = "일정 참여자 등록"
+    text_log = LOG.TO_ROUTE_TEXT(request)
     logger.info(f"{text_log} 요청 ({schedule_user_model.to_log()})")
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
@@ -44,13 +46,14 @@ def register_schedule_user(schedule_user_model: ScheduleUserModel):
     logger.info(f"{text_log} 완료 ({schedule_user_model.to_log()}, {LOG.TO_ESTIMATED_TIME(dt)})")
     return schedule_user_model
 
-@router.post("/unregister", summary="일정 참여자 삭제", response_model=ScheduleUserModel)
-def unregister_schedule_user(schedule_user_model: ScheduleUserModel):
+@router.post("/unregister", summary="일정 동행자 삭제", response_model=ScheduleUserModel)
+def unregister_schedule_user(schedule_user_model: ScheduleUserModel, request: Request):
     """
-    여행 일정 참여자 삭제
+    사용자가 요청하는 동행자를 일정에서 삭제
+    - **ScheduleUserModel.iPK: int** 필수 입력
     """
     dt = datetime.now()
-    text_log = "일정 참여자 삭제"
+    text_log = LOG.TO_ROUTE_TEXT(request)
     logger.info(f"{text_log} 요청 ({schedule_user_model.to_log()})")
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
@@ -63,13 +66,14 @@ def unregister_schedule_user(schedule_user_model: ScheduleUserModel):
     logger.info(f"{text_log} 완료 ({schedule_user_model.to_log()}, {LOG.TO_ESTIMATED_TIME(dt)})")
     return schedule_user_model
 
-@router.get("/list", summary="일정에 등록된 사용자 목록 조회", response_model=ScheduleUserListModel)
-def list_schedule(iSchedulePK: int):
+@router.get("/list", summary="동행자 목록 조회", response_model=ScheduleUserListModel)
+def list_schedule(iSchedulePK: int, request: Request):
     """
-    여행 일정에 등록된 사용자 목록 조회
+    사용자가 요청하는 일정에 등록된 동행자 목록 조회
+    - **iSchedulePK: int** 필수 입력
     """
     dt = datetime.now()
-    text_log = "일정에 등록된 사용자 목록 조회"
+    text_log = LOG.TO_ROUTE_TEXT(request)
     request_log = f"iSchedulePK:{iSchedulePK}"
     logger.info(f"{text_log} 요청 ({request_log})")
     with DB.CONNECT() as connection:

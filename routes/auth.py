@@ -1,6 +1,6 @@
 # pip install fastapi uvicorn PyJWT
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
@@ -18,44 +18,48 @@ security = HTTPBearer()
 logger = logging.getLogger(__name__)
 
 @router.post("/register", summary="회원가입", response_model=UserModel)
-def register(user_model: UserModel):
+def register(user_model: UserModel, request: Request):
     """
     회원가입
-    - **strUserID**: 필수 입력
-    - **strUserPW**: 필수 입력
-    - **strName**: 필수 입력
-    - **strEmail**: 필수 입력
+    - **strUserID**:str 필수 입력
+    - **strUserPW**:str 필수 입력
+    - **strName**:str 필수 입력
+    - **strEmail**:str 필수 입력
     """    
-    logger.info(f"회원가입 요청 ({user_model})")
+    dt = datetime.now()
+    text_log = LOG.TO_ROUTE_TEXT(request)
+    logger.info(f"{text_log} 요청 ({user_model})")
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, UserTable.TO_SELECT_MODEL_QUERY(user_model))
             if (result != 0):
-                msg = f"회원가입 실패! (사용자 ID 중복 : id={user_model.strUserID}, result={result})"
+                msg = f"{text_log} 실패! (사용자 ID 중복 : id={user_model.strUserID}, result={result})"
                 logger.error(msg)
                 raise HTTPException(status_code=400, detail=msg)
             if (user_model.check_validation() == False):
-                msg = f"회원가입 실패! (유효하지 않은 데이터 : {user_model})"
+                msg = f"{text_log} 실패! (유효하지 않은 데이터 : {user_model})"
                 logger.error(msg)
                 raise HTTPException(status_code=400, detail=msg)
             result = DB.EXECUTE(cursor, UserTable.TO_INSERT_QUERY(user_model))
             if (result != 1):
-                msg = f"회원가입 실패! (DB 등록 실패 : id={user_model.strUserID}, result={result})"
+                msg = f"{text_log} 실패! (DB 등록 실패 : id={user_model.strUserID}, result={result})"
                 logger.error(msg)
                 raise HTTPException(status_code=500, detail=msg)
             connection.commit()
             user_model.iPK = cursor.lastrowid
-    logger.info(f"회원가입 성공 ({user_model})")
+    logger.info(f"{text_log} 성공 ({user_model})")
     return user_model
 
 @router.post("/login", summary="로그인", response_model=LoginResponseModel)
-def login(request_model: LoginRequestModel):
+def login(request_model: LoginRequestModel, request: Request):
     """
     아이디와 비밀번호를 받아 유효한 경우 JWT 토큰을 반환
-    - **strUserID**: 필수 입력
-    - **strUserPW**: 필수 입력
+    - **strUserID**:str 필수 입력
+    - **strUserPW**:str 필수 입력
     """
-    logger.info(f"로그인 요청 ({request_model.strUserID})")
+    dt = datetime.now()
+    text_log = LOG.TO_ROUTE_TEXT(request)
+    logger.info(f"{text_log} 요청 ({request_model.strUserID})")
     logger.debug(f"Request ({request_model})")
     user_model = None
     dbname = os.getenv("DBNAME")
@@ -63,7 +67,7 @@ def login(request_model: LoginRequestModel):
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, UserTable.TO_SELECT_LOGIN_QUERY(request_model))
             if (result == 0):
-                msg = f"로그인 실패! (아이디 또는 비밀번호 불일치 : {request_model.strUserID})"
+                msg = f"{text_log} 실패! (아이디 또는 비밀번호 불일치 : {request_model.strUserID})"
                 logger.error(msg)
                 raise HTTPException(status_code=400, detail=msg)
             rows_tuple = cursor.fetchall()
@@ -75,11 +79,14 @@ def login(request_model: LoginRequestModel):
         access_token = token,
         token_type = "bearer"
     )
-    logger.info(f"로그인 성공 ({user_model.strUserID} {user_model.strName})")
+    logger.info(f"{text_log} 성공 ({user_model.strUserID} {user_model.strName})")
     return response_model
 
 @router.get("/test", summary="사용자 인증 확인")
 def test(auth: HTTPAuthorizationCredentials = Depends(security)):
+    """
+    사용자 인증 테스트
+    """
     user_model = AUTH_JWT.TO_USER_MODEL(auth)
     logger.debug(f"UserModel({user_model})")
     return {"message": f"{user_model.strName}님이 인증되었습니다! ({user_model.strUserID})"}

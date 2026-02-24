@@ -20,20 +20,22 @@ logger = logging.getLogger(__name__)
 #################################################################################################################
 
 @router.post("/create", summary="일정 생성", response_model=ScheduleModel)
-def create_schedule(schedule_model: ScheduleModel):
+def create_schedule(schedule_model: ScheduleModel, request: Request):
     """
-    여행 일정 생성 (수동)
+    사용자가 요청하는 일정을 생성
+    - **ScheduleModel.iPK: int** 이 항목만 제외하고 나머지 항목 필수 입력
     """
     dt = datetime.now()
-    logger.info(f"일정 생성 요청 ({schedule_model.to_log()})")
+    text_log = LOG.TO_ROUTE_TEXT(request)
+    logger.info(f"{text_log} 요청 ({schedule_model.to_log()})")
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, ScheduleTable.TO_INSERT_QUERY(schedule_model))
             if (result != 1):
-                msg = f"일정 생성 실패! (DB 등록 실패, {schedule_model.to_log()})"
+                msg = f"{text_log} 실패! (DB 등록 실패, {schedule_model.to_log()})"
                 logger.error(msg)
                 raise HTTPException(status_code=500, detail=msg)
             schedule_model.iPK = cursor.lastrowid
             connection.commit()
-    logger.info(f"일정 생성 완료 ({schedule_model.to_log()}, {LOG.TO_ESTIMATED_TIME(dt)})")
+    logger.info(f"{text_log} 완료 ({schedule_model.to_log()}, {LOG.TO_ESTIMATED_TIME(dt)})")
     return schedule_model
