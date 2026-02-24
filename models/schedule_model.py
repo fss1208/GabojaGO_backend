@@ -49,7 +49,15 @@ class ScheduleUserModel(BaseModel):
     iPK: Optional[int] = Field(default=0, example="1")
     iScheduleFK: int = Field(..., example="1", description="사용자가 참석하는 일정")
     iUserFK: int = Field(..., example="1", description="일정 생성자가 아닌 참석하는 사용자")
-    dtCreate: Optional[str] = Field(None, example="2026-02-23 15:11:23", description="등록 일시")
+    dtCreate: datetime = Field(..., example="2026-02-23 15:11:23", description="등록 일시")
+
+    @field_serializer('dtCreate')
+    def serialize_dt(self, dt: datetime, _info):
+        return dt.strftime('%Y-%m-%d %H:%M:%S')
 
     def to_log(self) -> str:
         return f"{self.iPK}:{self.iScheduleFK}:{self.iUserFK}"
+
+class ScheduleUserListModel(BaseModel):
+    user_list: list[ScheduleUserModel] = Field(..., description="일정에 등록된 사용자 목록", 
+        example="[{'iPK': 1, 'iScheduleFK': 1, 'iUserFK': 1, 'dtCreate': '2026-02-23 15:11:23'}, ...]")

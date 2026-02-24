@@ -3,7 +3,7 @@ from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from database.schedule.schedule_user_table import ScheduleUserTable
-from models.schedule_model import ScheduleUserModel
+from models.schedule_model import ScheduleUserModel, ScheduleUserListModel
 from library.JWT import AUTH_JWT
 from library.LOG import LOG
 from library.DB import DB
@@ -25,7 +25,8 @@ def register_schedule_user(schedule_user_model: ScheduleUserModel):
     여행 일정 참여자 등록
     """
     dt = datetime.now()
-    logger.info(f"일정 참여자 등록 요청 ({schedule_user_model.to_log()})")
+    text_log = "일정 참여자 등록"
+    logger.info(f"{text_log} 요청 ({schedule_user_model.to_log()})")
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, ScheduleUserTable.TO_INSERT_QUERY(schedule_user_model))
@@ -55,3 +56,24 @@ def unregister_schedule_user(schedule_user_model: ScheduleUserModel):
             connection.commit()
     logger.info(f"일정 참여자 삭제 완료 ({schedule_user_model.to_log()}, {LOG.TO_ESTIMATED_TIME(dt)})")
     return schedule_user_model
+
+@router.get("/list", summary="일정에 등록된 사용자 목록 조회", response_model=ScheduleUserListModel)
+def list_schedule(iSchedulePK: int):
+    """
+    여행 일정에 등록된 사용자 목록 조회
+    """
+    dt = datetime.now()
+    req_log = f"일정:{iSchedulePK}"
+    text_log = "일정에 등록된 사용자 목록 조회"
+    logger.info(f"{text_log} 요청 ({req_log})")
+    with DB.CONNECT() as connection:
+        with connection.cursor() as cursor:
+            result = DB.EXECUTE(cursor, ScheduleUserTable.TO_SELECT_LIST_QUERY(iSchedulePK))
+            rows_tuples = cursor.fetchall()
+            if (result != len(rows_tuples)):
+                msg = f"{text_log} 실패! (데이터 개수 불일치, {req_log}, 요청:{result}, 실제:{len(rows_tuples)})"
+                logger.error(msg)
+                raise HTTPException(status_code=500, detail=msg)
+            schedule_user_list_model = ScheduleUserListModel(user_list=ScheduleUserTable.TO_MODEL_LIST(rows_tuples))
+    logger.info(f"{text_log} 완료 ({req_log}:{result}개, {LOG.TO_ESTIMATED_TIME(dt)})")
+    return schedule_user_list_model

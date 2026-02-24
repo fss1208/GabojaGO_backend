@@ -19,6 +19,10 @@ class ScheduleUserTable(BaseTable):
         )
 
     @staticmethod
+    def TO_MODEL_LIST(rows_tuples: tuple) -> list[ScheduleUserModel]:
+        return [ScheduleUserTable.TO_MODEL(row) for row in rows_tuples]
+
+    @staticmethod
     def TO_CREATE_QUERY() -> str:
         return f"""
             CREATE TABLE {ScheduleUserTable.NAME} (
@@ -33,6 +37,10 @@ class ScheduleUserTable(BaseTable):
     @staticmethod
     def TO_SELECT_MODEL_QUERY(sum: ScheduleUserModel) -> str:
         return f"SELECT * FROM {ScheduleUserTable.NAME} WHERE iPK={sum.iPK}"
+
+    @staticmethod
+    def TO_SELECT_LIST_QUERY(iScheduleFK: int) -> str:
+        return f"SELECT * FROM {ScheduleUserTable.NAME} WHERE iScheduleFK={iScheduleFK} ORDER BY dtCreate"
 
     @staticmethod
     def TO_INSERT_QUERY(sum: ScheduleUserModel) -> str:
