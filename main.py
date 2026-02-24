@@ -8,6 +8,7 @@ import os
 from routes import auth
 from routes import location
 from routes import schedule
+from routes import schedule_user
 
 load_dotenv(override=True)
 log_level = getattr(logging, os.getenv("LOG_LEVEL"), logging.INFO)
@@ -38,6 +39,7 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(location.router, prefix="/location", tags=["Location Management"])
 app.include_router(schedule.router, prefix="/schedule", tags=["Schedule Management"])
+app.include_router(schedule_user.router, prefix="/schedule/user", tags=["Schedule User Management"])
 
 @app.get("/")
 async def root():
