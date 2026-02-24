@@ -3,7 +3,7 @@ from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from database.schedule_table import ScheduleTable
-from database.schedule_table_location import ScheduleLocationTable
+from database.schedule_location_table import ScheduleLocationTable
 from models.schedule_model import ScheduleModel, ScheduleLocationModel
 from models.location_model import LocationModel
 from library.JWT import AUTH_JWT
