@@ -10,6 +10,7 @@ from routes import location
 from routes import schedule
 from routes import schedule_user
 from routes import schedule_location
+from routes import schedule_expense
 
 load_dotenv(override=True)
 log_level = getattr(logging, os.getenv("LOG_LEVEL"), logging.INFO)
@@ -42,6 +43,7 @@ app.include_router(location.router, prefix="/location", tags=["Location Manageme
 app.include_router(schedule.router, prefix="/schedule", tags=["Schedule Management"])
 app.include_router(schedule_user.router, prefix="/schedule/user", tags=["Schedule User Management"])
 app.include_router(schedule_location.router, prefix="/schedule/location", tags=["Schedule Location Management"])
+app.include_router(schedule_expense.router, prefix="/schedule/expense", tags=["Schedule Expense Management"])
 
 @app.get("/")
 async def root():
