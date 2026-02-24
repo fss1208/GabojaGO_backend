@@ -43,6 +43,10 @@ class ScheduleUserTable(BaseTable):
         return f"SELECT * FROM {ScheduleUserTable.NAME} WHERE iScheduleFK={iScheduleFK} ORDER BY dtCreate"
 
     @staticmethod
+    def TO_SELECT_DUPLICATED_USER_QUERY(sum: ScheduleUserModel) -> str:
+        return f"SELECT * FROM {ScheduleUserTable.NAME} WHERE iScheduleFK={sum.iScheduleFK} AND iUserFK={sum.iUserFK}"
+
+    @staticmethod
     def TO_INSERT_QUERY(sum: ScheduleUserModel) -> str:
         return f"INSERT INTO {ScheduleUserTable.NAME} (iScheduleFK,iUserFK) " + \
             f"VALUES ({sum.iScheduleFK},{sum.iUserFK})"
