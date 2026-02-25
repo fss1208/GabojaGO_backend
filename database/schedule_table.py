@@ -81,6 +81,10 @@ class ScheduleTable(BaseTable):
                     SET dtDate1='{sm.dtDate1}',dtDate2='{sm.dtDate2}',strWhere='{sm.strWhere}',strWithWho='{sm.strWithWho}',strTransport='{sm.strTransport}',nTotalPeople={sm.nTotalPeople},nTotalBudget={sm.nTotalBudget},nAlarmRatio={sm.nAlarmRatio},nTransportRatio={sm.nTransportRatio},nLodgingRatio={sm.nLodgingRatio},nFoodRatio={sm.nFoodRatio},chStatus='{sm.chStatus}' 
                     WHERE iPK={sm.iPK}"""
 
+    @staticmethod
+    def TO_DELETE_QUERY(iSchedulePK: int) -> str:
+        return f"DELETE FROM {ScheduleTable.NAME} WHERE iPK={iSchedulePK}" 
+
 #############################################################################
 
 if (__name__ == "__main__"):
