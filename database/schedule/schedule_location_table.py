@@ -20,10 +20,6 @@ class ScheduleLocationTable(BaseTable):
         )
 
     @staticmethod
-    def TO_MODEL_LIST(rows_tuples: tuple) -> list[ScheduleLocationModel]:
-        return [ScheduleLocationTable.TO_MODEL(row) for row in rows_tuples]
-
-    @staticmethod
     def TO_CREATE_QUERY() -> str:
         return f"""
             CREATE TABLE {ScheduleLocationTable.NAME} (

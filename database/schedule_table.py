@@ -30,6 +30,10 @@ class ScheduleTable(BaseTable):
         )
 
     @staticmethod
+    def TO_MODEL_LIST(rows_tuples: tuple) -> list[ScheduleModel]:
+        return [ScheduleTable.TO_MODEL(row) for row in rows_tuples]
+
+    @staticmethod
     def TO_CREATE_QUERY() -> str:
         return f"""
             CREATE TABLE {ScheduleTable.NAME} (
@@ -37,16 +41,16 @@ class ScheduleTable(BaseTable):
                 iUserFK INT NOT NULL,
                 dtDate1 DATE NOT NULL,
                 dtDate2 DATE NOT NULL,
-                strWhere VARCHAR(128) NOT NULL,                     -- ex: 제주도,경주,부산
+                strWhere VARCHAR(128) NOT NULL,
                 strWithWho VARCHAR(128) NOT NULL,
                 strTransport VARCHAR(128) NOT NULL,
                 nTotalPeople TINYINT UNSIGNED, 
                 nTotalBudget INT UNSIGNED DEFAULT 0,
-                nAlarmRatio TINYINT UNSIGNED DEFAULT 25,            -- 알람 비율
-                nTransportRatio TINYINT UNSIGNED DEFAULT 25,        -- 교통비 비율
-                nLodgingRatio TINYINT UNSIGNED DEFAULT 25,          -- 숙박비 비율
-                nFoodRatio TINYINT UNSIGNED DEFAULT 25,             -- 식비 비율
-                chStatus CHAR(1) NOT NULL DEFAULT 'P',              -- P:준비, A:여행중, C:완료
+                nAlarmRatio TINYINT UNSIGNED DEFAULT 25,
+                nTransportRatio TINYINT UNSIGNED DEFAULT 25,
+                nLodgingRatio TINYINT UNSIGNED DEFAULT 25,
+                nFoodRatio TINYINT UNSIGNED DEFAULT 25,
+                chStatus CHAR(1) NOT NULL DEFAULT 'A',
                 dtCreate DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (iUserFK) REFERENCES user(iPK)
             );"""
@@ -54,6 +58,13 @@ class ScheduleTable(BaseTable):
     @staticmethod
     def TO_SELECT_MODEL_QUERY(sm: ScheduleModel) -> str:
         return f"SELECT * FROM {ScheduleTable.NAME} WHERE iPK={sm.iPK}"
+
+    @staticmethod
+    def TO_SELECT_LIST_QUERY(chStatus: str) -> str:
+        if (chStatus == 'A') or (chStatus == 'B'):
+            return f"SELECT * FROM {ScheduleTable.NAME} WHERE dtDate1 >= CURRENT_DATE() OR dtDate2 >= CURRENT_DATE()"
+        else:
+            return f"SELECT * FROM {ScheduleTable.NAME} WHERE dtDate2 > CURRENT_DATE()"
     
     @staticmethod
     def TO_INSERT_QUERY(sm: ScheduleModel) -> str:

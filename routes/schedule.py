@@ -3,7 +3,7 @@ from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from database.schedule_table import ScheduleTable
-from models.schedule_model import ScheduleModel
+from models.schedule_model import ScheduleModel, ScheduleListModel
 from library.JWT import AUTH_JWT
 from library.LOG import LOG
 from library.DB import DB
@@ -39,3 +39,24 @@ def create_schedule(schedule_model: ScheduleModel, request: Request):
             connection.commit()
     logger.info(f"{text_log} 완료 ({schedule_model.to_log()}, {LOG.TO_ESTIMATED_TIME(dt)})")
     return schedule_model
+
+@router.get("/list", summary="일정 목록 조회", response_model=ScheduleListModel)
+def list_schedule(chStatus: str, request: Request):
+    """
+    여행 일정 목록 조회
+    - **chStatus: str** 'A':예정, 'B':진행, 'C':완료
+    """
+    dt = datetime.now()
+    text_log = LOG.TO_ROUTE_TEXT(request)
+    logger.info(f"{text_log} 요청")
+    with DB.CONNECT() as connection:
+        with connection.cursor() as cursor:
+            result = DB.EXECUTE(cursor, ScheduleTable.TO_SELECT_LIST_QUERY(chStatus))
+            rows_tuple = cursor.fetchall()
+            if (result != len(rows_tuple)):
+                msg = f"{text_log} 실패! (데이터 개수 불일치, {request_log}, 요청:{result}, 실제:{len(rows_tuple)})"
+                logger.error(msg)
+                raise HTTPException(status_code=500, detail=msg)
+            schedule_list_model = ScheduleListModel(schedule_list=ScheduleTable.TO_MODEL_LIST(rows_tuple))
+    logger.info(f"{text_log} 완료 ({chStatus}:{result}개, {LOG.TO_ESTIMATED_TIME(dt)})")
+    return schedule_list_model
