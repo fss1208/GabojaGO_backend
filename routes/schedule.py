@@ -27,6 +27,7 @@ def append_schedule(schedule_model: ScheduleModel, request: Request, auth: HTTPA
     - **dtDate2: date** 필수 입력
     - **strWhere: str** 필수 입력
     - **strWithWho: str** 필수 입력
+    - **strTripStyle: str** 필수 입력
     - **strTransport: str** 필수 입력
     - **nTotalPeople: int** 필수 입력
     - **nTotalBudget: int** 필수 입력
@@ -60,6 +61,7 @@ def modify_schedule(schedule_model: ScheduleModel, request: Request, auth: HTTPA
     - **dtDate2: date** 수정 대상
     - **strWhere: str** 수정 대상
     - **strWithWho: str** 수정 대상
+    - **strTripStyle: str** 수정 대상
     - **strTransport: str** 수정 대상
     - **nTotalPeople: int** 수정 대상
     - **nTotalBudget: int** 수정 대상

@@ -13,6 +13,7 @@ class ScheduleModel(BaseModel):
     dtDate2: date = Field(..., example="2026-02-25", description="종료일자")
     strWhere: str = Field(..., example="제주도", description="여행지")
     strWithWho: str = Field(..., example="친구", description="누구와")
+    strTripStyle: str = Field(..., example="관광", description="여행 스타일")
     strTransport: str = Field(..., example="차량", description="교통수단")
     nTotalPeople: int = Field(..., example="2", description="인원")
     nTotalBudget: int = Field(..., example="1000000", description="예산")
@@ -20,7 +21,7 @@ class ScheduleModel(BaseModel):
     nTransportRatio: int = Field(..., example="25", description="교통비 비율")
     nLodgingRatio: int = Field(..., example="25", description="숙박비 비율")
     nFoodRatio: int = Field(..., example="25", description="식비 비율")
-    chStatus: Optional[str] = Field(None, example="A", description="상태 ('A':예정, 'B':진행, 'C':완료)")
+    chStatus: Optional[str] = Field(None, example="A", description="상태 ('A':예정, 'B':진행중, 'C':완료)")
     dtCreate: Optional[datetime] = Field(None, example="2026-02-23 15:11:23", description="yyyy-MM-dd HH:mm:ss")
 
     @field_serializer('dtDate1', 'dtDate2')
@@ -52,10 +53,6 @@ class ScheduleLocationModel(BaseModel):
     
     def to_log(self) -> str:
         return f"{self.iPK}:{self.iScheduleFK}:{self.iLocationFK}:{self.dtSchedule}"
-
-# class ScheduleLocationListModel(BaseModel):
-#     location_list: list[ScheduleLocationModel] = Field(..., description="일정 장소 목록", 
-#         example="[{'iPK': 1, 'iScheduleFK': 1, 'iLocationFK': 2062374957, 'dtSchedule': '2026-02-23 15:11:23', 'strMemo': '장소 메모'}, ...]")
 
 class ScheduleLocationFrontModel(BaseModel):
     iPK: int = Field(..., example="1", description="ScheduleLocationTable.iPK")

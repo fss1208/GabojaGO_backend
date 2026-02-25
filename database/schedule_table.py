@@ -18,15 +18,16 @@ class ScheduleTable(BaseTable):
             dtDate2=row[3],
             strWhere=row[4],
             strWithWho=row[5],
-            strTransport=row[6],
-            nTotalPeople=row[7],
-            nTotalBudget=row[8],
-            nAlarmRatio=row[9],
-            nTransportRatio=row[10],
-            nLodgingRatio=row[11],
-            nFoodRatio=row[12],
-            chStatus=row[13],
-            dtCreate=row[14]
+            strTripStyle=row[6],
+            strTransport=row[7],
+            nTotalPeople=row[8],
+            nTotalBudget=row[9],
+            nAlarmRatio=row[10],
+            nTransportRatio=row[11],
+            nLodgingRatio=row[12],
+            nFoodRatio=row[13],
+            chStatus=row[14],
+            dtCreate=row[15]
         )
 
     @staticmethod
@@ -43,6 +44,7 @@ class ScheduleTable(BaseTable):
                 dtDate2 DATE NOT NULL,
                 strWhere VARCHAR(128) NOT NULL,
                 strWithWho VARCHAR(128) NOT NULL,
+                strTripStyle VARCHAR(128) NOT NULL,
                 strTransport VARCHAR(128) NOT NULL,
                 nTotalPeople TINYINT UNSIGNED, 
                 nTotalBudget INT UNSIGNED DEFAULT 0,
@@ -72,14 +74,14 @@ class ScheduleTable(BaseTable):
     
     @staticmethod
     def TO_INSERT_QUERY(sm: ScheduleModel) -> str:
-        return f"INSERT INTO {ScheduleTable.NAME} (iUserFK,dtDate1,dtDate2,strWhere,strWithWho,strTransport,nTotalPeople,nTotalBudget,nAlarmRatio,nTransportRatio,nLodgingRatio,nFoodRatio,chStatus) " + \
-            f"VALUES ({sm.iUserFK},'{sm.dtDate1}','{sm.dtDate2}','{sm.strWhere}','{sm.strWithWho}','{sm.strTransport}',{sm.nTotalPeople},{sm.nTotalBudget},{sm.nAlarmRatio},{sm.nTransportRatio},{sm.nLodgingRatio},{sm.nFoodRatio},'{sm.chStatus}')"
+        return f"INSERT INTO {ScheduleTable.NAME} (iUserFK,dtDate1,dtDate2,strWhere,strWithWho,strTripStyle,strTransport,nTotalPeople,nTotalBudget,nAlarmRatio,nTransportRatio,nLodgingRatio,nFoodRatio,chStatus) " + \
+            f"VALUES ({sm.iUserFK},'{sm.dtDate1}','{sm.dtDate2}','{sm.strWhere}','{sm.strWithWho}','{sm.strTripStyle}','{sm.strTransport}',{sm.nTotalPeople},{sm.nTotalBudget},{sm.nAlarmRatio},{sm.nTransportRatio},{sm.nLodgingRatio},{sm.nFoodRatio},'{sm.chStatus}')"
 
     @staticmethod
     def TO_UPDATE_QUERY(sm: ScheduleModel) -> str:
-        return f"""UPDATE {ScheduleTable.NAME} 
-                    SET dtDate1='{sm.dtDate1}',dtDate2='{sm.dtDate2}',strWhere='{sm.strWhere}',strWithWho='{sm.strWithWho}',strTransport='{sm.strTransport}',nTotalPeople={sm.nTotalPeople},nTotalBudget={sm.nTotalBudget},nAlarmRatio={sm.nAlarmRatio},nTransportRatio={sm.nTransportRatio},nLodgingRatio={sm.nLodgingRatio},nFoodRatio={sm.nFoodRatio},chStatus='{sm.chStatus}' 
-                    WHERE iPK={sm.iPK}"""
+        return f"UPDATE {ScheduleTable.NAME} " + \
+               f"SET dtDate1='{sm.dtDate1}',dtDate2='{sm.dtDate2}',strWhere='{sm.strWhere}',strWithWho='{sm.strWithWho}',strTripStyle='{sm.strTripStyle}',strTransport='{sm.strTransport}',nTotalPeople={sm.nTotalPeople},nTotalBudget={sm.nTotalBudget},nAlarmRatio={sm.nAlarmRatio},nTransportRatio={sm.nTransportRatio},nLodgingRatio={sm.nLodgingRatio},nFoodRatio={sm.nFoodRatio},chStatus='{sm.chStatus}' " + \
+               f"WHERE iPK={sm.iPK}"
 
     @staticmethod
     def TO_DELETE_QUERY(iSchedulePK: int) -> str:
