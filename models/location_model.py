@@ -26,3 +26,21 @@ class LocationModel(BaseModel):
 
     def to_log(self) -> str:
         return f"{self.iPK}:{self.strName}"
+
+class LocationListModel(BaseModel):
+    location_list: list[LocationModel] = Field(..., description="장소 정보 목록")
+
+###############################################################################################################################################################
+
+class LocationRequestItemModel(BaseModel):
+    """
+    장소 정보 요청  모델
+    """
+    place_name: str = Field(..., example="청년취업사관학교 도봉캠퍼스")
+    category_group_code: Optional[str] = Field(None, example="FD6")
+
+class LocationRequestListModel(BaseModel):
+    """
+    AI로 생성한 장소 이름 목록 
+    """
+    request_list: list[LocationRequestItemModel] = Field(..., example=[LocationRequestItemModel(place_name="섭지코지", category_group_code="AT4")], description="장소 이름 목록")

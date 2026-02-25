@@ -16,7 +16,7 @@ load_dotenv(override=True)
 log_level = getattr(logging, os.getenv("LOG_LEVEL"), logging.INFO)
 logging.basicConfig(
     level=log_level,
-    format="%(levelname)s:\t\t[%(asctime)s %(name)s] %(message)s",
+    format="%(levelname)s:\t[%(asctime)s %(name)s] %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S"  # 날짜 형식 지정
 )
 logger = logging.getLogger(__name__)

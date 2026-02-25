@@ -3,9 +3,8 @@ from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from database.location_table import LocationTable
-from models.location_model import LocationModel
-from models.location_model import KakaoMapSearchRequestModel
-from library.LLM import CategoryGPT
+from models.location_model import LocationModel, LocationListModel
+from models.location_model import KakaoMapSearchRequestModel, LocationRequestListModel
 from library.MAP import KAKAO_MAP
 from library.JWT import AUTH_JWT
 from library.LOG import LOG
@@ -34,6 +33,30 @@ def search_keyword_kakaomap(search_param: KakaoMapSearchRequestModel, request: R
     location_dict = KAKAO_MAP.SEARCH_KEYWORD(search_param)
     logger.info(f"{text_log} 완료 ({LOG.TO_ESTIMATED_TIME(dt)})")
     return location_dict
+
+@router.post("/request", summary="장소 정보 요청", response_model=LocationListModel)
+def request_location(request_model: LocationRequestListModel, request: Request):
+    """
+    AI가 생성한 일정에 포함된 장소명으로 장소 정보를 검색하여 반환
+    """
+    dt = datetime.now()
+    text_log = LOG.TO_ROUTE_TEXT(request)
+    logger.info(f"{text_log} 요청 (len:{len(request_model.request_list)}건)")
+    location_list = []
+    for request_item_model in request_model.request_list:
+        search_param = KakaoMapSearchRequestModel(
+            query=request_item_model.place_name,
+            category_group_code=request_item_model.category_group_code if request_item_model.category_group_code else None
+        )
+        location_dict = KAKAO_MAP.SEARCH_KEYWORD(search_param)
+        for location_model in location_dict.values():
+            # logger.debug(f"{place_name} : {location_model}")
+            location_list.append(location_model)
+            break
+    logger.info(f"{text_log} 완료 (len:{len(location_list)}건, {LOG.TO_ESTIMATED_TIME(dt)})")
+    return LocationListModel(location_list=location_list)
+
+#################################################################################################################
 
 @router.post("/register", summary="장소 등록", response_model=LocationModel)
 def register_location(location_model: LocationModel, request: Request):
