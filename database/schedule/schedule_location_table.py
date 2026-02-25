@@ -50,8 +50,8 @@ class ScheduleLocationTable(BaseTable):
         return f"UPDATE {ScheduleLocationTable.NAME} SET dtSchedule='{slm.dtSchedule}',strMemo='{slm.strMemo}' WHERE iPK={slm.iPK}"
 
     @staticmethod
-    def TO_DELETE_QUERY(slm: ScheduleLocationModel) -> str:
-        return f"DELETE FROM {ScheduleLocationTable.NAME} WHERE iPK={slm.iPK}"
+    def TO_DELETE_QUERY(nScheduleLocationPK: int) -> str:
+        return f"DELETE FROM {ScheduleLocationTable.NAME} WHERE iPK={nScheduleLocationPK}"
 
 ####################################################################################################################################################
 
