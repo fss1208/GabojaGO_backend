@@ -2,8 +2,9 @@ from fastapi import APIRouter, Request
 from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
+from database.schedule.schedule_location_view import ScheduleLocationView
 from database.schedule.schedule_location_table import ScheduleLocationTable
-from models.schedule_model import ScheduleLocationModel, ScheduleLocationListModel
+from models.schedule_model import ScheduleLocationModel, ScheduleRequestModel, ScheduleLocationResponseModel
 from library.JWT import AUTH_JWT
 from library.LOG import LOG
 from library.DB import DB
@@ -85,24 +86,24 @@ def remove_location(schedule_location_model: ScheduleLocationModel, request: Req
     logger.info(f"{text_log} 완료 ({schedule_location_model.to_log()}, {LOG.TO_ESTIMATED_TIME(dt)})")
     return schedule_location_model
 
-@router.get("/list", summary="장소 목록 조회", response_model=ScheduleLocationListModel)
-def list_schedule(iSchedulePK: int, request: Request):
+@router.get("/list", summary="장소 목록 조회", response_model=ScheduleLocationResponseModel)
+def list_schedule(schedule_request_model: ScheduleRequestModel, request: Request):
     """
     사용자가 요청하는 일정에 등록된 장소 목록 조회
     - **iSchedulePK: int** 필수 입력
     """
     dt = datetime.now()
     text_log = LOG.TO_ROUTE_TEXT(request)
-    request_log = f"iSchedulePK:{iSchedulePK}"
+    request_log = f"iSchedulePK:{schedule_request_model.iSchedulePK}"
     logger.info(f"{text_log} 요청 ({request_log})")
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
-            result = DB.EXECUTE(cursor, ScheduleLocationTable.TO_SELECT_LIST_QUERY(iSchedulePK))
+            result = DB.EXECUTE(cursor, ScheduleLocationView.TO_SELECT_MODEL_QUERY(schedule_request_model.iSchedulePK))
             rows_tuples = cursor.fetchall()
             if (result != len(rows_tuples)):
                 msg = f"{text_log} 실패! (데이터 개수 불일치, {request_log}, 요청:{result}, 실제:{len(rows_tuples)})"
                 logger.error(msg)
                 raise HTTPException(status_code=500, detail=msg)
-            schedule_location_list_model = ScheduleLocationListModel(location_list=ScheduleLocationTable.TO_MODEL_LIST(rows_tuples))
+            schedule_location_response_model = ScheduleLocationResponseModel(location_list=ScheduleLocationView.TO_MODEL_LIST(rows_tuples))
     logger.info(f"{text_log} 완료 ({request_log}:{result}개, {LOG.TO_ESTIMATED_TIME(dt)})")
-    return schedule_location_list_model
+    return schedule_location_response_model
