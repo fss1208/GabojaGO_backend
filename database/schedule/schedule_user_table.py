@@ -52,8 +52,8 @@ class ScheduleUserTable(BaseTable):
             f"VALUES ({sum.iScheduleFK},{sum.iUserFK})"
 
     @staticmethod
-    def TO_DELETE_QUERY(sum: ScheduleUserModel) -> str:
-        return f"DELETE FROM {ScheduleUserTable.NAME} WHERE iPK={sum.iPK}"
+    def TO_DELETE_QUERY(iScheduleUserPK: int) -> str:
+        return f"DELETE FROM {ScheduleUserTable.NAME} WHERE iPK={iScheduleUserPK}"
 
 ####################################################################################################################################################
 
