@@ -25,10 +25,9 @@ def append_expense(schedule_expense_model: ScheduleExpenseModel, request: Reques
     사용자가 요청하는 지출을 일정에 등록
     - **ScheduleExpenseModel.iSchedulePK: int** 필수 입력
     - **ScheduleExpenseModel.iUserPK: int** 필수 입력
+    - **ScheduleExpenseModel.nMoney: int** 필수 입력
     - **ScheduleExpenseModel.dtExpense: datetime** 필수 입력
     - **ScheduleExpenseModel.chCategory: str** 필수 입력
-    - **ScheduleExpenseModel.nMoney: int** 필수 입력
-    - **ScheduleExpenseModel.iLocation: int** 필수 입력
     - **ScheduleExpenseModel.strMemo: str** 필수 입력
     """
     dt = datetime.now()
@@ -51,10 +50,9 @@ def modify_expense(schedule_expense_model: ScheduleExpenseModel, request: Reques
     """
     사용자가 요청하는 일정에 등록된 지출의 정보 수정
     - **ScheduleExpenseModel.iPK: int** 필수 입력
+    - **ScheduleExpenseModel.nMoney: int** 수정 항목
     - **ScheduleExpenseModel.dtExpense: datetime** 수정 항목
     - **ScheduleExpenseModel.chCategory: str** 수정 항목
-    - **ScheduleExpenseModel.nMoney: int** 수정 항목
-    - **ScheduleExpenseModel.iLocation: int** 수정 항목
     - **ScheduleExpenseModel.strMemo: str** 수정 항목
     """
     dt = datetime.now()

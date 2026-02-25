@@ -93,10 +93,9 @@ class ScheduleExpenseModel(BaseModel):
     iPK: Optional[int] = Field(default=0, example="0")
     iScheduleFK: int = Field(..., example="1", description="지출한 일정")
     iUserFK: int = Field(..., example="1", description="지출한 사용자")
+    nMoney: int = Field(..., example="100000", description="지출 금액")
     dtExpense: datetime = Field(..., example="2026-02-23 15:11:23", description="지출 일시")
     chCategory: str = Field(..., example="F", description="지출 카테고리")
-    nMoney: int = Field(..., example="100000", description="지출 금액")
-    iLocation: int = Field(..., example="2062374957", description="장소 ID (없으면 0)")
     strMemo: Optional[str] = Field(None, example="메모", description="메모")
 
     @field_serializer('dtExpense')
@@ -107,5 +106,4 @@ class ScheduleExpenseModel(BaseModel):
         return f"{self.iPK}:{self.iScheduleFK}:{self.iUserFK}"
 
 class ScheduleExpenseListModel(BaseModel):
-    expense_list: list[ScheduleExpenseModel] = Field(..., description="일정에 등록된 지출 목록", 
-        example="[{'iPK': 1, 'iScheduleFK': 1, 'iUserFK': 1, 'dtExpense': '2026-02-23 15:11:23', 'chCategory': '식비', 'nMoney': 100000, 'iLocation': 2062374957, 'strMemo': '메모'}, ...]")
+    expense_list: list[ScheduleExpenseModel] = Field(..., description="일정에 등록된 지출 목록")

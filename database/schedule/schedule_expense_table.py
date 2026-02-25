@@ -15,11 +15,10 @@ class ScheduleExpenseTable(BaseTable):
             iPK=row[0],
             iScheduleFK=row[1],
             iUserFK=row[2],
-            dtExpense=row[3],
-            chCategory=row[4],
-            nMoney=row[5],
-            iLocation=row[6],
-            strMemo=row[7]
+            nMoney=row[3],
+            dtExpense=row[4],
+            chCategory=row[5],
+            strMemo=row[6]
         )
 
     @staticmethod
@@ -33,10 +32,9 @@ class ScheduleExpenseTable(BaseTable):
                 iPK INT AUTO_INCREMENT PRIMARY KEY,
                 iScheduleFK INT NOT NULL,
                 iUserFK INT NOT NULL,
-                dtExpense DATETIME NOT NULL,
-                chCategory CHAR(1) NOT NULL,                    -- T:교통, L:숙박, F:식비, E:기타
                 nMoney INT NOT NULL,
-                iLocation INT DEFAULT 0,                        -- 없는 경우 : 0
+                dtExpense DATETIME NOT NULL,
+                chCategory CHAR(1) NOT NULL,
                 strMemo VARCHAR(1024),
                 FOREIGN KEY (iScheduleFK) REFERENCES schedule(iPK) ON DELETE CASCADE,
                 FOREIGN KEY (iUserFK) REFERENCES user(iPK)
@@ -52,13 +50,13 @@ class ScheduleExpenseTable(BaseTable):
 
     @staticmethod
     def TO_INSERT_QUERY(sem: ScheduleExpenseModel) -> str:
-        return f"INSERT INTO {ScheduleExpenseTable.NAME} (iScheduleFK,iUserFK,dtExpense,chCategory,nMoney,iLocation,strMemo) " + \
-            f"VALUES ({sem.iScheduleFK},{sem.iUserFK},'{sem.dtExpense}','{sem.chCategory}',{sem.nMoney},{sem.iLocation},'{sem.strMemo}')"
+        return f"INSERT INTO {ScheduleExpenseTable.NAME} (iScheduleFK,iUserFK,nMoney,dtExpense,chCategory,strMemo) " + \
+            f"VALUES ({sem.iScheduleFK},{sem.iUserFK},{sem.nMoney},'{sem.dtExpense}','{sem.chCategory}','{sem.strMemo}')"
 
     @staticmethod
     def TO_UPDATE_QUERY(sem: ScheduleExpenseModel) -> str:
         return f"UPDATE {ScheduleExpenseTable.NAME} " + \
-               f"SET dtExpense='{sem.dtExpense}',chCategory='{sem.chCategory}',nMoney={sem.nMoney},iLocation={sem.iLocation},strMemo='{sem.strMemo}' " + \
+               f"SET nMoney={sem.nMoney},dtExpense='{sem.dtExpense}',chCategory='{sem.chCategory}',strMemo='{sem.strMemo}' " + \
                f"WHERE iPK={sem.iPK}"
 
     @staticmethod
