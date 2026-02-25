@@ -37,9 +37,6 @@ class ScheduleModel(BaseModel):
 class ScheduleListModel(BaseModel):
     schedule_list: list[ScheduleModel] = Field(..., description="일정 목록")
 
-class ScheduleRequestModel(BaseModel):
-    iPK: Optional[int] = Field(default=0, example="1", description="ScheduleModel.iPK")
-
 ###############################################################################################################################################################
 
 class ScheduleLocationModel(BaseModel):
@@ -67,7 +64,11 @@ class ScheduleLocationFrontModel(BaseModel):
     strMemo: Optional[str] = Field(None, example="장소 메모", description="메모")
     location: LocationModel = Field(..., description="장소 정보")
 
-class ScheduleLocationResponseModel(BaseModel):
+    @field_serializer('dtSchedule')
+    def serialize_dt(self, dt: datetime, _info):
+        return dt.strftime('%Y-%m-%d %H:%M:%S')
+
+class ScheduleLocationListModel(BaseModel):
     location_list: list[ScheduleLocationFrontModel] = Field(..., description="일정 장소 목록")
 
 ###############################################################################################################################################################
