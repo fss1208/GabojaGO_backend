@@ -71,25 +71,26 @@ def modify_expense(schedule_expense_model: ScheduleExpenseModel, request: Reques
     logger.info(f"{text_log} 완료 ({schedule_expense_model.to_log()}, {LOG.TO_ESTIMATED_TIME(dt)})")
     return schedule_expense_model
 
-@router.post("/remove", summary="지출 정보 삭제", response_model=ScheduleExpenseModel)
-def remove_expense(schedule_expense_model: ScheduleExpenseModel, request: Request):
+@router.post("/remove", summary="지출 정보 삭제", response_model=dict)
+def remove_expense(iScheduleExpensePK: int, request: Request):
     """
     사용자가 요청하는 일정에 등록된 지출 정보 삭제
-    - **ScheduleExpenseModel.iPK: int** 필수 입력
+    - **iScheduleExpensePK: int** 필수 입력
     """
     dt = datetime.now()
     text_log = LOG.TO_ROUTE_TEXT(request)
-    logger.info(f"{text_log} 요청 ({schedule_expense_model.to_log()})")
+    request_log = f"iScheduleExpensePK:{iScheduleExpensePK}"
+    logger.info(f"{text_log} 요청 ({request_log})")
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
-            result = DB.EXECUTE(cursor, ScheduleExpenseTable.TO_DELETE_QUERY(schedule_expense_model))
+            result = DB.EXECUTE(cursor, ScheduleExpenseTable.TO_DELETE_QUERY(iScheduleExpensePK))
             if (result != 1):
-                msg = f"{text_log} 실패! (DB 삭제 실패, {schedule_expense_model.to_log()})"
+                msg = f"{text_log} 실패! (DB 삭제 실패, {request_log})"
                 logger.error(msg)
                 raise HTTPException(status_code=500, detail=msg)
             connection.commit()
-    logger.info(f"{text_log} 완료 ({schedule_expense_model.to_log()}, {LOG.TO_ESTIMATED_TIME(dt)})")
-    return schedule_expense_model
+    logger.info(f"{text_log} 완료 ({request_log}, {LOG.TO_ESTIMATED_TIME(dt)})")
+    return {"iScheduleExpensePK": iScheduleExpensePK}
 
 @router.get("/list", summary="지출 정보 조회", response_model=ScheduleExpenseListModel)
 def list_expense(iSchedulePK: int, request: Request):

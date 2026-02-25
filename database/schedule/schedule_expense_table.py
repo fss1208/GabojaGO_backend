@@ -62,8 +62,8 @@ class ScheduleExpenseTable(BaseTable):
                f"WHERE iPK={sem.iPK}"
 
     @staticmethod
-    def TO_DELETE_QUERY(sem: ScheduleExpenseModel) -> str:
-        return f"DELETE FROM {ScheduleExpenseTable.NAME} WHERE iPK={sem.iPK}"
+    def TO_DELETE_QUERY(iScheduleExpensePK: int) -> str:
+        return f"DELETE FROM {ScheduleExpenseTable.NAME} WHERE iPK={iScheduleExpensePK}"
 
 ####################################################################################################################################################
 

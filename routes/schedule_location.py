@@ -66,26 +66,26 @@ def modify_location(schedule_location_model: ScheduleLocationModel, request: Req
     logger.info(f"{text_log} 완료 ({schedule_location_model.to_log()}, {LOG.TO_ESTIMATED_TIME(dt)})")
     return schedule_location_model
 
-@router.post("/remove", summary="장소 삭제", response_model=int)
-def remove_location(nScheduleLocationPK: int, request: Request):
+@router.post("/remove", summary="장소 삭제", response_model=dict)
+def remove_location(iScheduleLocationPK: int, request: Request):
     """
     사용자가 요청하는 일정에 등록된 장소 삭제
-    - **nScheduleLocationPK: int** 필수 입력
+    - **iScheduleLocationPK: int** 필수 입력
     """
     dt = datetime.now()
     text_log = LOG.TO_ROUTE_TEXT(request)
-    request_log = f"nScheduleLocationPK:{nScheduleLocationPK}"
+    request_log = f"iScheduleLocationPK:{iScheduleLocationPK}"
     logger.info(f"{text_log} 요청 ({request_log})")
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
-            result = DB.EXECUTE(cursor, ScheduleLocationTable.TO_DELETE_QUERY(nScheduleLocationPK))
+            result = DB.EXECUTE(cursor, ScheduleLocationTable.TO_DELETE_QUERY(iScheduleLocationPK))
             if (result != 1):
                 msg = f"{text_log} 실패! (DB 삭제 실패, {request_log})"
                 logger.error(msg)
                 raise HTTPException(status_code=500, detail=msg)
             connection.commit()
     logger.info(f"{text_log} 완료 ({request_log}, {LOG.TO_ESTIMATED_TIME(dt)})")
-    return nScheduleLocationPK
+    return {"iScheduleLocationPK": iScheduleLocationPK}
 
 @router.get("/list", summary="장소 목록 조회", response_model=ScheduleLocationListModel)
 def list_schedule_location(iSchedulePK: int, request: Request):
