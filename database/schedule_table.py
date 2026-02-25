@@ -60,19 +60,22 @@ class ScheduleTable(BaseTable):
         return f"SELECT * FROM {ScheduleTable.NAME} WHERE iPK={sm.iPK}"
 
     @staticmethod
-    def TO_SELECT_LIST_QUERY(chStatus: str) -> str:
-        if (chStatus == 'A') or (chStatus == 'B'):
-            return f"SELECT * FROM {ScheduleTable.NAME} WHERE dtDate1 >= CURRENT_DATE() OR dtDate2 >= CURRENT_DATE()"
+    def TO_SELECT_LIST_QUERY(iUserFK: int, chStatus: str) -> str:
+        if (chStatus == 'A'):
+            return f"SELECT * FROM {ScheduleTable.NAME} WHERE iUserFK={iUserFK} AND (dtDate1 >= CURRENT_DATE() OR dtDate2 >= CURRENT_DATE())"
+        elif (chStatus == 'B'):
+            return f"SELECT * FROM {ScheduleTable.NAME} WHERE iUserFK={iUserFK} AND (dtDate1 <= CURRENT_DATE() AND dtDate2 >= CURRENT_DATE())"
+        elif (chStatus == 'C'):
+            return f"SELECT * FROM {ScheduleTable.NAME} WHERE iUserFK={iUserFK} AND dtDate2 < CURRENT_DATE()"
         else:
-            return f"SELECT * FROM {ScheduleTable.NAME} WHERE dtDate2 > CURRENT_DATE()"
+            return f"SELECT * FROM {ScheduleTable.NAME} WHERE iUserFK={iUserFK}"
     
     @staticmethod
     def TO_INSERT_QUERY(sm: ScheduleModel) -> str:
         return f"INSERT INTO {ScheduleTable.NAME} (iUserFK,dtDate1,dtDate2,strWhere,strWithWho,strTransport,nTotalPeople,nTotalBudget,nAlarmRatio,nTransportRatio,nLodgingRatio,nFoodRatio,chStatus) " + \
             f"VALUES ({sm.iUserFK},'{sm.dtDate1}','{sm.dtDate2}','{sm.strWhere}','{sm.strWithWho}','{sm.strTransport}',{sm.nTotalPeople},{sm.nTotalBudget},{sm.nAlarmRatio},{sm.nTransportRatio},{sm.nLodgingRatio},{sm.nFoodRatio},'{sm.chStatus}')"
 
-
-####################################################################################################################################################
+#############################################################################
 
 if (__name__ == "__main__"):
     from dotenv import load_dotenv

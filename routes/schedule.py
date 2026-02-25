@@ -41,22 +41,23 @@ def create_schedule(schedule_model: ScheduleModel, request: Request):
     return schedule_model
 
 @router.get("/list", summary="일정 목록 조회", response_model=ScheduleListModel)
-def list_schedule(chStatus: str, request: Request):
+def list_schedule(chStatus: str, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
     """
     여행 일정 목록 조회
-    - **chStatus: str** 'A':예정, 'B':진행, 'C':완료
+    - **chStatus: str** 'A':예정, 'B':진행중, 'C':완료
     """
     dt = datetime.now()
     text_log = LOG.TO_ROUTE_TEXT(request)
-    logger.info(f"{text_log} 요청")
+    login_user = AUTH_JWT.TO_USER_MODEL(auth)
+    logger.info(f"[{login_user.to_log()}] {text_log} 요청 (상태:{chStatus})")
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
-            result = DB.EXECUTE(cursor, ScheduleTable.TO_SELECT_LIST_QUERY(chStatus))
+            result = DB.EXECUTE(cursor, ScheduleTable.TO_SELECT_LIST_QUERY(login_user.iPK, chStatus))
             rows_tuple = cursor.fetchall()
             if (result != len(rows_tuple)):
-                msg = f"{text_log} 실패! (데이터 개수 불일치, {request_log}, 요청:{result}, 실제:{len(rows_tuple)})"
+                msg = f"[{login_user.to_log()}] {text_log} 실패! (데이터 개수 불일치, 요청:{result}, 실제:{len(rows_tuple)})"
                 logger.error(msg)
                 raise HTTPException(status_code=500, detail=msg)
             schedule_list_model = ScheduleListModel(schedule_list=ScheduleTable.TO_MODEL_LIST(rows_tuple))
-    logger.info(f"{text_log} 완료 ({chStatus}:{result}개, {LOG.TO_ESTIMATED_TIME(dt)})")
+    logger.info(f"[{login_user.to_log()}] {text_log} 완료 (상태:{chStatus}, {result}개, {LOG.TO_ESTIMATED_TIME(dt)})")
     return schedule_list_model

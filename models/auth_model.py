@@ -23,3 +23,6 @@ class UserModel(BaseModel):
         # if (self.id is None or self.pw is None or self.name is None or self.email is None or self.phone is None or self.address is None):
         #     return False
         return True
+
+    def to_log(self) -> str:
+        return f"{self.iPK}:{self.strUserID}:{self.strName}"
