@@ -40,6 +40,26 @@ def append_schedule(schedule_model: ScheduleModel, request: Request, auth: HTTPA
     logger.info(f"[{login_user.to_log()}] {text_log} 완료 ({schedule_model.to_log()}, {LOG.TO_ESTIMATED_TIME(dt)})")
     return schedule_model
 
+@router.post("/modify", summary="일정 수정", response_model=ScheduleModel)
+def modify_schedule(schedule_model: ScheduleModel, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
+    """
+    사용자가 요청하는 일정 수정
+    """
+    dt = datetime.now()
+    text_log = LOG.TO_ROUTE_TEXT(request)
+    login_user = AUTH_JWT.TO_USER_MODEL(auth)
+    logger.info(f"[{login_user.to_log()}] {text_log} 요청 ({schedule_model.to_log()})")
+    with DB.CONNECT() as connection:
+        with connection.cursor() as cursor:
+            result = DB.EXECUTE(cursor, ScheduleTable.TO_UPDATE_QUERY(schedule_model))
+            if (result != 1):
+                msg = f"[{login_user.to_log()}] {text_log} 실패! (DB 수정 실패, {schedule_model.to_log()})"
+                logger.error(msg)
+                raise HTTPException(status_code=500, detail=msg)
+            connection.commit()
+    logger.info(f"[{login_user.to_log()}] {text_log} 완료 ({schedule_model.to_log()}, {LOG.TO_ESTIMATED_TIME(dt)})")
+    return schedule_model
+
 @router.get("/list", summary="일정 목록 조회", response_model=ScheduleListModel)
 def list_schedule(chStatus: str, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
     """

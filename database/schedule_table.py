@@ -75,6 +75,12 @@ class ScheduleTable(BaseTable):
         return f"INSERT INTO {ScheduleTable.NAME} (iUserFK,dtDate1,dtDate2,strWhere,strWithWho,strTransport,nTotalPeople,nTotalBudget,nAlarmRatio,nTransportRatio,nLodgingRatio,nFoodRatio,chStatus) " + \
             f"VALUES ({sm.iUserFK},'{sm.dtDate1}','{sm.dtDate2}','{sm.strWhere}','{sm.strWithWho}','{sm.strTransport}',{sm.nTotalPeople},{sm.nTotalBudget},{sm.nAlarmRatio},{sm.nTransportRatio},{sm.nLodgingRatio},{sm.nFoodRatio},'{sm.chStatus}')"
 
+    @staticmethod
+    def TO_UPDATE_QUERY(sm: ScheduleModel) -> str:
+        return f"""UPDATE {ScheduleTable.NAME} 
+                    SET dtDate1='{sm.dtDate1}',dtDate2='{sm.dtDate2}',strWhere='{sm.strWhere}',strWithWho='{sm.strWithWho}',strTransport='{sm.strTransport}',nTotalPeople={sm.nTotalPeople},nTotalBudget={sm.nTotalBudget},nAlarmRatio={sm.nAlarmRatio},nTransportRatio={sm.nTransportRatio},nLodgingRatio={sm.nLodgingRatio},nFoodRatio={sm.nFoodRatio},chStatus='{sm.chStatus}' 
+                    WHERE iPK={sm.iPK}"""
+
 #############################################################################
 
 if (__name__ == "__main__"):
