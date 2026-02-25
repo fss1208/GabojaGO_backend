@@ -19,25 +19,25 @@ logger = logging.getLogger(__name__)
 
 #################################################################################################################
 
-@router.post("/create", summary="일정 생성", response_model=ScheduleModel)
-def create_schedule(schedule_model: ScheduleModel, request: Request):
+@router.post("/append", summary="일정 추가", response_model=ScheduleModel)
+def append_schedule(schedule_model: ScheduleModel, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
     """
-    사용자가 요청하는 일정을 생성
-    - **ScheduleModel.iPK: int** 이 항목만 제외하고 나머지 항목 필수 입력
+    사용자 요청에 의한 일정 수동 추가
     """
     dt = datetime.now()
     text_log = LOG.TO_ROUTE_TEXT(request)
-    logger.info(f"{text_log} 요청 ({schedule_model.to_log()})")
+    login_user = AUTH_JWT.TO_USER_MODEL(auth)
+    logger.info(f"[{login_user.to_log()}] {text_log} 요청 ({schedule_model.to_log()})")
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, ScheduleTable.TO_INSERT_QUERY(schedule_model))
             if (result != 1):
-                msg = f"{text_log} 실패! (DB 등록 실패, {schedule_model.to_log()})"
+                msg = f"[{login_user.to_log()}] {text_log} 실패! (DB 등록 실패, {schedule_model.to_log()})"
                 logger.error(msg)
                 raise HTTPException(status_code=500, detail=msg)
             schedule_model.iPK = cursor.lastrowid
             connection.commit()
-    logger.info(f"{text_log} 완료 ({schedule_model.to_log()}, {LOG.TO_ESTIMATED_TIME(dt)})")
+    logger.info(f"[{login_user.to_log()}] {text_log} 완료 ({schedule_model.to_log()}, {LOG.TO_ESTIMATED_TIME(dt)})")
     return schedule_model
 
 @router.get("/list", summary="일정 목록 조회", response_model=ScheduleListModel)
