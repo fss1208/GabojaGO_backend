@@ -23,6 +23,17 @@ logger = logging.getLogger(__name__)
 def append_schedule(schedule_model: ScheduleModel, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
     """
     사용자 요청에 의한 일정 수동 추가
+    - **dtDate1: date** 필수 입력
+    - **dtDate2: date** 필수 입력
+    - **strWhere: str** 필수 입력
+    - **strWithWho: str** 필수 입력
+    - **strTransport: str** 필수 입력
+    - **nTotalPeople: int** 필수 입력
+    - **nTotalBudget: int** 필수 입력
+    - **nAlarmRatio: int** 필수 입력
+    - **nTransportRatio: int** 필수 입력
+    - **nLodgingRatio: int** 필수 입력
+    - **nFoodRatio: int** 필수 입력
     """
     dt = datetime.now()
     text_log = LOG.TO_ROUTE_TEXT(request)
@@ -43,7 +54,19 @@ def append_schedule(schedule_model: ScheduleModel, request: Request, auth: HTTPA
 @router.post("/modify", summary="일정 수정", response_model=ScheduleModel)
 def modify_schedule(schedule_model: ScheduleModel, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
     """
-    사용자가 요청하는 일정 수정
+    사용자 요청에 의한 일정 수정
+    - **iPK: int** 필수 입력
+    - **dtDate1: date** 수정 대상
+    - **dtDate2: date** 수정 대상
+    - **strWhere: str** 수정 대상
+    - **strWithWho: str** 수정 대상
+    - **strTransport: str** 수정 대상
+    - **nTotalPeople: int** 수정 대상
+    - **nTotalBudget: int** 수정 대상
+    - **nAlarmRatio: int** 수정 대상
+    - **nTransportRatio: int** 수정 대상
+    - **nLodgingRatio: int** 수정 대상
+    - **nFoodRatio: int** 수정 대상
     """
     dt = datetime.now()
     text_log = LOG.TO_ROUTE_TEXT(request)
@@ -64,6 +87,7 @@ def modify_schedule(schedule_model: ScheduleModel, request: Request, auth: HTTPA
 def remove_schedule(iSchedulePK: int, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
     """
     사용자 요청에 의한 일정 삭제
+    - **iSchedulePK: int** 필수 입력
     """
     dt = datetime.now()
     text_log = LOG.TO_ROUTE_TEXT(request)
