@@ -22,8 +22,8 @@ class ScheduleExpenseTable(BaseTable):
         )
 
     @staticmethod
-    def TO_MODEL_LIST(rows_tuples: tuple) -> list[ScheduleExpenseModel]:
-        return [ScheduleExpenseTable.TO_MODEL(row) for row in rows_tuples]
+    def TO_MODEL_LIST(rows_tuple: tuple) -> list[ScheduleExpenseModel]:
+        return [ScheduleExpenseTable.TO_MODEL(row) for row in rows_tuple]
 
     @staticmethod
     def TO_CREATE_QUERY() -> str:
@@ -51,7 +51,7 @@ class ScheduleExpenseTable(BaseTable):
     @staticmethod
     def TO_INSERT_QUERY(sem: ScheduleExpenseModel) -> str:
         return f"INSERT INTO {ScheduleExpenseTable.NAME} (iScheduleFK,iUserFK,nMoney,dtExpense,chCategory,strMemo) " + \
-            f"VALUES ({sem.iScheduleFK},{sem.iUserFK},{sem.nMoney},'{sem.dtExpense}','{sem.chCategory}','{sem.strMemo}')"
+               f"VALUES ({sem.iScheduleFK},{sem.iUserFK},{sem.nMoney},'{sem.dtExpense}','{sem.chCategory}','{sem.strMemo}')"
 
     @staticmethod
     def TO_UPDATE_QUERY(sem: ScheduleExpenseModel) -> str:

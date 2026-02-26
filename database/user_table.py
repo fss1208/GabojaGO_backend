@@ -59,7 +59,7 @@ class UserTable(BaseTable):
     @staticmethod
     def TO_INSERT_QUERY(user_model: UserModel) -> str:
         return f"INSERT INTO {UserTable.NAME} (strUserID,strUserPW,strName,strEmail,strPhone,strAddress,strImageFile) " + \
-                        f"VALUES ('{user_model.strUserID}','{user_model.strUserPW}','{user_model.strName}','{user_model.strEmail}','{user_model.strPhone}','{user_model.strAddress}','{user_model.strImageFile}')"
+               f"VALUES ('{user_model.strUserID}','{user_model.strUserPW}','{user_model.strName}','{user_model.strEmail}','{user_model.strPhone}','{user_model.strAddress}','{user_model.strImageFile}')"
 
 ####################################################################################################################################################
 

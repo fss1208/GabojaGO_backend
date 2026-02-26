@@ -43,7 +43,7 @@ class ScheduleLocationTable(BaseTable):
     @staticmethod
     def TO_INSERT_QUERY(slm: ScheduleLocationModel) -> str:
         return f"INSERT INTO {ScheduleLocationTable.NAME} (iScheduleFK,iLocationFK,dtSchedule,strMemo) " + \
-            f"VALUES ({slm.iScheduleFK},{slm.iLocationFK},'{slm.dtSchedule}','{slm.strMemo}')"
+               f"VALUES ({slm.iScheduleFK},{slm.iLocationFK},'{slm.dtSchedule}','{slm.strMemo}')"
 
     @staticmethod
     def TO_UPDATE_QUERY(slm: ScheduleLocationModel) -> str:

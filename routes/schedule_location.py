@@ -100,11 +100,11 @@ def list_schedule_location(iSchedulePK: int, request: Request):
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, ScheduleLocationView.TO_SELECT_MODEL_QUERY(iSchedulePK))
-            rows_tuples = cursor.fetchall()
-            if (result != len(rows_tuples)):
-                msg = f"{text_log} 실패! (데이터 개수 불일치, {request_log}, 요청:{result}, 실제:{len(rows_tuples)})"
+            rows_tuple = cursor.fetchall()
+            if (result != len(rows_tuple)):
+                msg = f"{text_log} 실패! (데이터 개수 불일치, {request_log}, 요청:{result}, 실제:{len(rows_tuple)})"
                 logger.error(msg)
                 raise HTTPException(status_code=500, detail=msg)
-            schedule_location_list_model = ScheduleLocationListModel(location_list=ScheduleLocationView.TO_MODEL_LIST(rows_tuples))
+            schedule_location_list_model = ScheduleLocationListModel(location_list=ScheduleLocationView.TO_MODEL_LIST(rows_tuple))
     logger.info(f"{text_log} 완료 ({request_log}:{result}개, {LOG.TO_ESTIMATED_TIME(dt)})")
     return schedule_location_list_model

@@ -103,11 +103,11 @@ def list_expense(iSchedulePK: int, request: Request):
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, ScheduleExpenseTable.TO_SELECT_LIST_QUERY(iSchedulePK))
-            rows_tuples = cursor.fetchall()
-            if (result != len(rows_tuples)):
-                msg = f"{text_log} 실패! (데이터 개수 불일치, {request_log}, 요청:{result}, 실제:{len(rows_tuples)})"
+            rows_tuple = cursor.fetchall()
+            if (result != len(rows_tuple)):
+                msg = f"{text_log} 실패! (데이터 개수 불일치, {request_log}, 요청:{result}, 실제:{len(rows_tuple)})"
                 logger.error(msg)
                 raise HTTPException(status_code=500, detail=msg)
-            schedule_expense_list_model = ScheduleExpenseListModel(expense_list=ScheduleExpenseTable.TO_MODEL_LIST(rows_tuples))
+            schedule_expense_list_model = ScheduleExpenseListModel(expense_list=ScheduleExpenseTable.TO_MODEL_LIST(rows_tuple))
     logger.info(f"{text_log} 완료 ({request_log}:{result}개, {LOG.TO_ESTIMATED_TIME(dt)})")
     return schedule_expense_list_model

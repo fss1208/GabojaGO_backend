@@ -19,8 +19,8 @@ class ScheduleUserTable(BaseTable):
         )
 
     @staticmethod
-    def TO_MODEL_LIST(rows_tuples: tuple) -> list[ScheduleUserModel]:
-        return [ScheduleUserTable.TO_MODEL(row) for row in rows_tuples]
+    def TO_MODEL_LIST(rows_tuple: tuple) -> list[ScheduleUserModel]:
+        return [ScheduleUserTable.TO_MODEL(row) for row in rows_tuple]
 
     @staticmethod
     def TO_CREATE_QUERY() -> str:
@@ -49,7 +49,7 @@ class ScheduleUserTable(BaseTable):
     @staticmethod
     def TO_INSERT_QUERY(sum: ScheduleUserModel) -> str:
         return f"INSERT INTO {ScheduleUserTable.NAME} (iScheduleFK,iUserFK) " + \
-            f"VALUES ({sum.iScheduleFK},{sum.iUserFK})"
+               f"VALUES ({sum.iScheduleFK},{sum.iUserFK})"
 
     @staticmethod
     def TO_DELETE_QUERY(iScheduleUserPK: int) -> str:

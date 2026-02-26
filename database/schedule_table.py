@@ -31,8 +31,8 @@ class ScheduleTable(BaseTable):
         )
 
     @staticmethod
-    def TO_MODEL_LIST(rows_tuples: tuple) -> list[ScheduleModel]:
-        return [ScheduleTable.TO_MODEL(row) for row in rows_tuples]
+    def TO_MODEL_LIST(rows_tuple: tuple) -> list[ScheduleModel]:
+        return [ScheduleTable.TO_MODEL(row) for row in rows_tuple]
 
     @staticmethod
     def TO_CREATE_QUERY() -> str:
@@ -75,7 +75,7 @@ class ScheduleTable(BaseTable):
     @staticmethod
     def TO_INSERT_QUERY(sm: ScheduleModel) -> str:
         return f"INSERT INTO {ScheduleTable.NAME} (iUserFK,dtDate1,dtDate2,strWhere,strWithWho,strTripStyle,strTransport,nTotalPeople,nTotalBudget,nAlarmRatio,nTransportRatio,nLodgingRatio,nFoodRatio,chStatus) " + \
-            f"VALUES ({sm.iUserFK},'{sm.dtDate1}','{sm.dtDate2}','{sm.strWhere}','{sm.strWithWho}','{sm.strTripStyle}','{sm.strTransport}',{sm.nTotalPeople},{sm.nTotalBudget},{sm.nAlarmRatio},{sm.nTransportRatio},{sm.nLodgingRatio},{sm.nFoodRatio},'{sm.chStatus}')"
+               f"VALUES ({sm.iUserFK},'{sm.dtDate1}','{sm.dtDate2}','{sm.strWhere}','{sm.strWithWho}','{sm.strTripStyle}','{sm.strTransport}',{sm.nTotalPeople},{sm.nTotalBudget},{sm.nAlarmRatio},{sm.nTransportRatio},{sm.nLodgingRatio},{sm.nFoodRatio},'{sm.chStatus}')"
 
     @staticmethod
     def TO_UPDATE_QUERY(sm: ScheduleModel) -> str:

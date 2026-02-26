@@ -7,7 +7,7 @@ class LocationTable(BaseTable):
     NAME = "location"
 
     def to_models(self) -> list[LocationModel]:
-        return [self.TO_MODEL(row) for row in self.rows_tuples]
+        return [self.TO_MODEL(row) for row in self.rows_tuple]
 
     @staticmethod
     def TO_MODEL(row: tuple) -> LocationModel:
@@ -54,7 +54,7 @@ class LocationTable(BaseTable):
     @staticmethod
     def TO_INSERT_QUERY(lm: LocationModel) -> str:
         return f"INSERT INTO {LocationTable.NAME} (iPK,strName,strGroupCode,strGroupName,strGroupDetail,strAddress,strPhone,strLink,chCategory,ptLongLat) " + \
-                            f"VALUES ({lm.iPK},'{lm.strName}','{lm.strGroupCode}','{lm.strGroupName}','{lm.strGroupDetail}','{lm.strAddress}','{lm.strPhone}','{lm.strLink}','{lm.chCategory}',{DB.TO_POINT(lm.ptLongitude, lm.ptLatitude)})"
+               f"VALUES ({lm.iPK},'{lm.strName}','{lm.strGroupCode}','{lm.strGroupName}','{lm.strGroupDetail}','{lm.strAddress}','{lm.strPhone}','{lm.strLink}','{lm.chCategory}',{DB.TO_POINT(lm.ptLongitude, lm.ptLatitude)})"
 
     @staticmethod
     def TO_DELETE_QUERY(lm: LocationModel) -> str:

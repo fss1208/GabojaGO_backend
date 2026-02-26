@@ -57,8 +57,8 @@ if (__name__ == "__main__"):
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
             DB.EXECUTE(cursor, ScheduleLocationView.TO_SELECT_MODEL_QUERY(1))
-            rows_tuples = cursor.fetchall()
-            front_list = ScheduleLocationView.TO_MODEL_LIST(rows_tuples)
+            rows_tuple = cursor.fetchall()
+            front_list = ScheduleLocationView.TO_MODEL_LIST(rows_tuple)
             for front_model in front_list:
                 print(front_model)
 

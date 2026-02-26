@@ -20,8 +20,8 @@ class DatabaseException(Exception):
 
 class BaseTable:
 
-    def __init__(self, rows_tuples: tuple):
-        self.rows_tuples = rows_tuples
+    def __init__(self, rows_tuple: tuple):
+        self.rows_tuple = rows_tuple
 
 
 class DB:
