@@ -28,10 +28,10 @@ def search_keyword_kakaomap(search_param: KakaoMapSearchRequestModel, request: R
     - **query**:str 필수 입력
     """
     dt = datetime.now()
-    text_log = LOG.TO_ROUTE_TEXT(request)
-    logger.info(f"{text_log} 요청 ({search_param})")
+    request_user = LOG.TO_REQUEST_USER(request)
+    logger.info(LOG.TO_MESSAGE(request, request_user, "요청"))
     location_dict = KAKAO_MAP.SEARCH_KEYWORD(search_param)
-    logger.info(f"{text_log} 완료 ({LOG.TO_ESTIMATED_TIME(dt)})")
+    logger.info(LOG.TO_MESSAGE(request, request_user, "완료"))
     return location_dict
 
 @router.post("/request", summary="장소 정보 요청", response_model=LocationListModel)
@@ -40,8 +40,8 @@ def request_location(request_model: LocationRequestListModel, request: Request):
     AI가 생성한 일정에 포함된 장소명으로 장소 정보를 검색하여 반환
     """
     dt = datetime.now()
-    text_log = LOG.TO_ROUTE_TEXT(request)
-    logger.info(f"{text_log} 요청 (len:{len(request_model.request_list)}건)")
+    request_user = LOG.TO_REQUEST_USER(request)
+    logger.info(LOG.TO_MESSAGE(request, request_user, "요청", f"{len(request_model.request_list)}건"))
     location_list = []
     for request_item_model in request_model.request_list:
         search_param = KakaoMapSearchRequestModel(
@@ -50,10 +50,9 @@ def request_location(request_model: LocationRequestListModel, request: Request):
         )
         location_dict = KAKAO_MAP.SEARCH_KEYWORD(search_param)
         for location_model in location_dict.values():
-            # logger.debug(f"{place_name} : {location_model}")
             location_list.append(location_model)
             break
-    logger.info(f"{text_log} 완료 (len:{len(location_list)}건, {LOG.TO_ESTIMATED_TIME(dt)})")
+    logger.info(LOG.TO_MESSAGE(request, request_user, "완료", f"{len(location_list)}건"))
     return LocationListModel(location_list=location_list)
 
 #################################################################################################################
@@ -64,41 +63,41 @@ def register_location(location_model: LocationModel, request: Request):
     사용자가 요청하는 장소를 등록 (장소 찾기로 받은 정보 그대로 사용)
     """
     dt = datetime.now()
-    text_log = LOG.TO_ROUTE_TEXT(request)
-    logger.info(f"{text_log} 요청 ({location_model.to_log()})")
+    request_user = LOG.TO_REQUEST_USER(request)
+    logger.info(LOG.TO_MESSAGE(request, request_user, "요청", location_model.to_log()))
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, LocationTable.TO_SELECT_ID_QUERY(location_model))
             if (result != 0):
-                msg = f"{text_log} 실패! (이미 등록된 장소, {location_model.to_log()})"
-                logger.error(msg)
-                raise HTTPException(status_code=400, detail=msg)
+                msg = f"이미 등록된 장소, {location_model.to_log()}"
+                logger.error(LOG.TO_MESSAGE(request, request_user, "실패!", msg, dt))
+                raise HTTPException(status_code=500, detail=msg)
             result = DB.EXECUTE(cursor, LocationTable.TO_INSERT_QUERY(location_model))
             if (result != 1):
-                msg = f"{text_log} 실패! (DB 등록 실패, {location_model.to_log()})"
-                logger.error(msg)
+                msg = f"DB 등록 실패, {location_model.to_log()}"
+                logger.error(LOG.TO_MESSAGE(request, request_user, "실패!", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
-            location_model.iPK = cursor.lastrowid
             connection.commit()
-    logger.info(f"{text_log} 완료 ({location_model.to_log()}, {LOG.TO_ESTIMATED_TIME(dt)})")
+    logger.info(LOG.TO_MESSAGE(request, request_user, "완료", f"{location_model.to_log()}", dt))
     return location_model
  
-@router.post("/unregister", summary="장소 등록 취소")
-def unregister_location(location_model: LocationModel, request: Request):
+@router.post("/unregister", summary="장소 등록 취소", response_model=dict)
+def unregister_location(iLocationPK: int, request: Request):
     """
     사용자가 등록했던 장소를 취소
     - **LocationModel.iPK**:int **필수 입력**
     """
     dt = datetime.now()
-    text_log = LOG.TO_ROUTE_TEXT(request)
-    logger.info(f"{text_log} 요청 ({location_model.to_log()})")
+    request_log = f"iLocationPK:{iLocationPK}"
+    request_user = LOG.TO_REQUEST_USER(request)
+    logger.info(LOG.TO_MESSAGE(request, request_user, "요청", request_log))
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
-            result = DB.EXECUTE(cursor, LocationTable.TO_DELETE_QUERY(location_model))
+            result = DB.EXECUTE(cursor, LocationTable.TO_DELETE_QUERY(iLocationPK))
             if (result == 0):
-                msg = f"{text_log} 실패! (등록되지 않은 장소, {location_model.to_log()})"
+                msg = f"{text_log} 실패! (등록되지 않은 장소, {request_log})"
                 logger.error(msg)
                 raise HTTPException(status_code=500, detail=msg)
             connection.commit()
-    logger.info(f"{text_log} 완료 ({location_model.to_log()}, {result}건 삭제, {LOG.TO_ESTIMATED_TIME(dt)})")
-    return location_model
+    logger.info(LOG.TO_MESSAGE(request, request_user, "완료", request_log, dt))
+    return {"iLocationPK": iLocationPK}

@@ -52,7 +52,7 @@ class ScheduleLocationModel(BaseModel):
         return dt.strftime('%Y-%m-%d %H:%M:%S')
     
     def to_log(self) -> str:
-        return f"{self.iPK}:{self.iScheduleFK}:{self.iLocationFK}:{self.dtSchedule}"
+        return f"{self.iPK}:{self.iScheduleFK}:{self.iLocationFK}"
 
 class ScheduleLocationFrontModel(BaseModel):
     iPK: int = Field(..., example="1", description="ScheduleLocationTable.iPK")

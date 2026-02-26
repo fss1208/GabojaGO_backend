@@ -22,71 +22,71 @@ logger = logging.getLogger(__name__)
 #################################################################################################################
 
 @router.post("/append", summary="일정 동행자 추가", response_model=ScheduleUserModel)
-def append_schedule_user(schedule_user_model: ScheduleUserModel, request: Request):
+def append_schedule_user(schedule_user_model: ScheduleUserModel, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
     """
     사용자가 요청하는 동행자를 일정에 추가
     - **ScheduleUserModel.iSchedulePK: int** 필수 입력
     - **ScheduleUserModel.iUserPK: int** 필수 입력
     """
     dt = datetime.now()
-    text_log = LOG.TO_ROUTE_TEXT(request)
-    logger.info(f"{text_log} 요청 ({schedule_user_model.to_log()})")
+    login_user = AUTH_JWT.TO_USER_MODEL(auth)
+    logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "요청", schedule_user_model.to_log()))
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, ScheduleUserTable.TO_SELECT_DUPLICATED_USER_QUERY(schedule_user_model))
             if (result != 0):
-                msg = f"{text_log} 실패! (이미 등록된 사용자, {schedule_user_model.to_log()})"
-                logger.error(msg)
+                msg = f"이미 등록된 사용자, {schedule_user_model.to_log()}"
+                logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "에러", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
             result = DB.EXECUTE(cursor, ScheduleUserTable.TO_INSERT_QUERY(schedule_user_model))
             if (result != 1):
-                msg = f"{text_log} 실패! (DB 등록 실패, {schedule_user_model.to_log()})"
-                logger.error(msg)
+                msg = f"DB 등록 실패, {schedule_user_model.to_log()}"
+                logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "에러", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
             schedule_user_model.iPK = cursor.lastrowid
             connection.commit()
-    logger.info(f"{text_log} 완료 ({schedule_user_model.to_log()}, {LOG.TO_ESTIMATED_TIME(dt)})")
+    logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "완료", schedule_user_model.to_log(), dt))
     return schedule_user_model
 
 @router.post("/remove", summary="일정 동행자 삭제", response_model=dict)
-def remove_schedule_user(iScheduleUserPK: int, request: Request):
+def remove_schedule_user(iScheduleUserPK: int, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
     """
     사용자가 요청하는 동행자를 일정에서 삭제
     - **iScheduleUserPK: int** 필수 입력
     """
     dt = datetime.now()
-    text_log = LOG.TO_ROUTE_TEXT(request)
+    login_user = AUTH_JWT.TO_USER_MODEL(auth)
     request_log = f"iScheduleUserPK:{iScheduleUserPK}"
-    logger.info(f"{text_log} 요청 ({request_log})")
+    logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "요청", request_log))
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, ScheduleUserTable.TO_DELETE_QUERY(iScheduleUserPK))
             if (result != 1):
-                msg = f"{text_log} 실패! (DB 삭제 실패, {request_log})"
-                logger.error(msg)
+                msg = f"DB 삭제 실패, {request_log}"
+                logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "에러", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
             connection.commit()
-    logger.info(f"{text_log} 완료 ({request_log}, {LOG.TO_ESTIMATED_TIME(dt)})")
+    logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "완료", request_log, dt))
     return {"iScheduleUserPK": iScheduleUserPK}
 
 @router.get("/list", summary="동행자 목록 조회", response_model=UserListModel)
-def list_schedule(iSchedulePK: int, request: Request):
+def list_schedule(iSchedulePK: int, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
     """
     사용자가 요청하는 일정에 등록된 동행자 목록 조회
     - **iSchedulePK: int** 필수 입력
     """
     dt = datetime.now()
-    text_log = LOG.TO_ROUTE_TEXT(request)
+    login_user = AUTH_JWT.TO_USER_MODEL(auth)
     request_log = f"iSchedulePK:{iSchedulePK}"
-    logger.info(f"{text_log} 요청 ({request_log})")
+    logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "요청", request_log))
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, UserTable.TO_SELECT_LIST_QUERY(ScheduleUserTable.TO_SELECT_USER_QUERY(iSchedulePK)))
             rows_tuple = cursor.fetchall()
             if (result != len(rows_tuple)):
-                msg = f"{text_log} 실패! (데이터 개수 불일치, {request_log}, 요청:{result}, 실제:{len(rows_tuple)})"
-                logger.error(msg)
+                msg = f"데이터 개수 불일치, {request_log}, 요청:{result}, 실제:{len(rows_tuple)}"
+                logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "에러", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
             user_list_model = UserListModel(user_list=UserTable.TO_MODEL_LIST(rows_tuple))
-    logger.info(f"{text_log} 완료 ({request_log}:{result}개, {LOG.TO_ESTIMATED_TIME(dt)})")
+    logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "완료", f"{request_log}, {result}건", dt))
     return user_list_model

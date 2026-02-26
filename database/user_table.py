@@ -24,8 +24,6 @@ class UserTable(BaseTable):
         user_model_list = [UserTable.TO_MODEL(row) for row in rows_tuple]
         for user_model in user_model_list:
             user_model.strUserPW = ""
-            user_model.strPhone = ""
-            user_model.strAddress = ""
             user_model.strImageFile = ""
         return user_model_list
 

@@ -57,8 +57,8 @@ class LocationTable(BaseTable):
                f"VALUES ({lm.iPK},'{lm.strName}','{lm.strGroupCode}','{lm.strGroupName}','{lm.strGroupDetail}','{lm.strAddress}','{lm.strPhone}','{lm.strLink}','{lm.chCategory}',{DB.TO_POINT(lm.ptLongitude, lm.ptLatitude)})"
 
     @staticmethod
-    def TO_DELETE_QUERY(lm: LocationModel) -> str:
-        return f"DELETE FROM {LocationTable.NAME} WHERE iPK={lm.iPK}"
+    def TO_DELETE_QUERY(iLocationPK: int) -> str:
+        return f"DELETE FROM {LocationTable.NAME} WHERE iPK={iLocationPK}"
 
 #############################################################################################################################################################################################################################################
 

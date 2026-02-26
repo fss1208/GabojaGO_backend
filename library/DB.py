@@ -46,7 +46,7 @@ class DB:
                 passwd=os.getenv("DBPSWD"),
                 charset=DB.CHARSET
             )
-            logger.info("DATABASE 연결 성공 ({}:{}, {:,.2f}msec)".format(connection.host, connection.port, (datetime.now() - dt).microseconds/1000))
+            logger.debug("DATABASE 연결 성공 ({}:{}, {:,.2f}msec)".format(connection.host, connection.port, (datetime.now() - dt).microseconds/1000))
             if name:
                 connection.select_db(name)
             return connection

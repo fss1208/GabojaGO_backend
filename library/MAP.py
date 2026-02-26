@@ -44,7 +44,6 @@ class KAKAO_MAP:
             params["page"] = params.get("page", 1) + 1
             if (params["page"] > 45):
                 break
-        logger.debug(f"RESULT {json.dumps(result_dict, indent=4, ensure_ascii=False)}")
         return result_dict
 
     @staticmethod
