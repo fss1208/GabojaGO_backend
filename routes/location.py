@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 #################################################################################################################
 
-@router.post("/search/keyword", summary="키워드로 장소 찾기", response_model=dict[str, LocationModel])
+@router.post("/search/keyword", summary="키워드로 장소 찾기", response_model=LocationListModel)
 def search_keyword_kakaomap(search_param: KakaoMapSearchRequestModel, request: Request):
     """
     사용자가 요청하는 키워드에 해당하는 장소를 찾아 반환 (최대 15개)
@@ -30,9 +30,9 @@ def search_keyword_kakaomap(search_param: KakaoMapSearchRequestModel, request: R
     dt = datetime.now()
     request_user = LOG.TO_REQUEST_USER(request)
     logger.info(LOG.TO_MESSAGE(request, request_user, "요청"))
-    location_dict = KAKAO_MAP.SEARCH_KEYWORD(search_param)
+    location_model_list = KAKAO_MAP.SEARCH_KEYWORD(search_param)
     logger.info(LOG.TO_MESSAGE(request, request_user, "완료"))
-    return location_dict
+    return LocationListModel(location_list=location_model_list)
 
 @router.post("/request", summary="장소 정보 요청", response_model=LocationListModel)
 def request_location(request_model: LocationRequestListModel, request: Request):
@@ -42,18 +42,26 @@ def request_location(request_model: LocationRequestListModel, request: Request):
     dt = datetime.now()
     request_user = LOG.TO_REQUEST_USER(request)
     logger.info(LOG.TO_MESSAGE(request, request_user, "요청", f"{len(request_model.request_list)}건"))
-    location_list = []
+    response_model_list = []
     for request_item_model in request_model.request_list:
         search_param = KakaoMapSearchRequestModel(
             query=request_item_model.place_name,
             category_group_code=request_item_model.category_group_code if request_item_model.category_group_code else None
         )
-        location_dict = KAKAO_MAP.SEARCH_KEYWORD(search_param)
-        for location_model in location_dict.values():
-            location_list.append(location_model)
+        location_model_list = KAKAO_MAP.SEARCH_KEYWORD(search_param)
+        for location_model in location_model_list:
+            response_model_list.append(location_model)
             break
-    logger.info(LOG.TO_MESSAGE(request, request_user, "완료", f"{len(location_list)}건"))
-    return LocationListModel(location_list=location_list)
+    with DB.CONNECT() as connection:
+        with connection.cursor() as cursor:
+            for location_model in response_model_list:
+                logger.debug(f"등록 대상 ({location_model.to_log()})")
+                result = DB.EXECUTE(cursor, LocationTable.TO_SELECT_ID_QUERY(location_model))
+                if (result == 0):
+                    result = DB.EXECUTE(cursor, LocationTable.TO_INSERT_QUERY(location_model))
+            connection.commit()
+    logger.info(LOG.TO_MESSAGE(request, request_user, "완료", f"{len(response_model_list)}건"))
+    return LocationListModel(location_list=response_model_list)
 
 #################################################################################################################
 

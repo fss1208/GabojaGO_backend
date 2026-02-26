@@ -22,7 +22,7 @@ class KAKAO_MAP:
             logger.debug(f"AFTER {params}")
             response_dict = requests.get(url, headers=headers, params=params).json()
             logger.debug(f"RESPONSE {json.dumps(response_dict, indent=4, ensure_ascii=False)}")
-            result_dict = {}
+            result_model_list = []
             for i, loc_dict in enumerate(response_dict["documents"]):
                 location_model = LocationModel(
                     iPK=int(loc_dict["id"]),
@@ -37,14 +37,13 @@ class KAKAO_MAP:
                     ptLongitude=loc_dict["x"],
                     ptLatitude=loc_dict["y"]
                 )
-                model_dict = location_model.model_dump()
-                result_dict[str(i)] = model_dict
+                result_model_list.append(location_model)
             if (response_dict["meta"]["is_end"]):
                 break
             params["page"] = params.get("page", 1) + 1
             if (params["page"] > 45):
                 break
-        return result_dict
+        return result_model_list
 
     @staticmethod
     def TO_CATEGORY(group_code: str) -> str:
