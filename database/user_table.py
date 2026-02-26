@@ -20,6 +20,16 @@ class UserTable(BaseTable):
         )
 
     @staticmethod
+    def TO_MODEL_LIST(rows_tuple: tuple) -> list[UserModel]:
+        user_model_list = [UserTable.TO_MODEL(row) for row in rows_tuple]
+        for user_model in user_model_list:
+            user_model.strUserPW = ""
+            user_model.strPhone = ""
+            user_model.strAddress = ""
+            user_model.strImageFile = ""
+        return user_model_list
+
+    @staticmethod
     def TO_CREATE_QUERY() -> str:
         return f"""
             CREATE TABLE {UserTable.NAME} (
@@ -41,6 +51,10 @@ class UserTable(BaseTable):
     @staticmethod
     def TO_SELECT_MODEL_QUERY(user_model: UserModel) -> str:
         return f"SELECT * FROM {UserTable.NAME} WHERE strUserID='{user_model.strUserID}'"
+
+    @staticmethod
+    def TO_SELECT_LIST_QUERY(query: str) -> str:
+        return f"SELECT * FROM {UserTable.NAME} WHERE iPK IN ({query})"
 
     @staticmethod
     def TO_INSERT_QUERY(user_model: UserModel) -> str:

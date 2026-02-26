@@ -39,8 +39,8 @@ class ScheduleUserTable(BaseTable):
         return f"SELECT * FROM {ScheduleUserTable.NAME} WHERE iPK={sum.iPK}"
 
     @staticmethod
-    def TO_SELECT_LIST_QUERY(iScheduleFK: int) -> str:
-        return f"SELECT * FROM {ScheduleUserTable.NAME} WHERE iScheduleFK={iScheduleFK} ORDER BY dtCreate"
+    def TO_SELECT_USER_QUERY(iScheduleFK: int) -> str:
+        return f"SELECT iUserFK FROM {ScheduleUserTable.NAME} WHERE iScheduleFK={iScheduleFK} ORDER BY dtCreate"
 
     @staticmethod
     def TO_SELECT_DUPLICATED_USER_QUERY(sum: ScheduleUserModel) -> str:

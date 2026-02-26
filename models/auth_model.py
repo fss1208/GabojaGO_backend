@@ -26,3 +26,6 @@ class UserModel(BaseModel):
 
     def to_log(self) -> str:
         return f"{self.iPK}:{self.strUserID}:{self.strName}"
+
+class UserListModel(BaseModel):
+    user_list: list[UserModel] = Field(..., example=[UserModel(iPK=1, strUserID="KSH", strUserPW="123", strName="김성호", strEmail="KSH@gmail.com", strPhone="010-1234-5678", strAddress="서울특별시 도봉구", strImageFile="/profile/ksh.jpg")])

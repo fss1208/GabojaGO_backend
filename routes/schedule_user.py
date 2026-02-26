@@ -4,6 +4,8 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from database.schedule.schedule_user_table import ScheduleUserTable
 from models.schedule_model import ScheduleUserModel, ScheduleUserListModel
+from database.user_table import UserTable
+from models.auth_model import UserListModel
 from library.JWT import AUTH_JWT
 from library.LOG import LOG
 from library.DB import DB
@@ -67,7 +69,7 @@ def remove_schedule_user(iScheduleUserPK: int, request: Request):
     logger.info(f"{text_log} 완료 ({request_log}, {LOG.TO_ESTIMATED_TIME(dt)})")
     return {"iScheduleUserPK": iScheduleUserPK}
 
-@router.get("/list", summary="동행자 목록 조회", response_model=ScheduleUserListModel)
+@router.get("/list", summary="동행자 목록 조회", response_model=UserListModel)
 def list_schedule(iSchedulePK: int, request: Request):
     """
     사용자가 요청하는 일정에 등록된 동행자 목록 조회
@@ -79,12 +81,12 @@ def list_schedule(iSchedulePK: int, request: Request):
     logger.info(f"{text_log} 요청 ({request_log})")
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
-            result = DB.EXECUTE(cursor, ScheduleUserTable.TO_SELECT_LIST_QUERY(iSchedulePK))
-            rows_tuples = cursor.fetchall()
-            if (result != len(rows_tuples)):
-                msg = f"{text_log} 실패! (데이터 개수 불일치, {request_log}, 요청:{result}, 실제:{len(rows_tuples)})"
+            result = DB.EXECUTE(cursor, UserTable.TO_SELECT_LIST_QUERY(ScheduleUserTable.TO_SELECT_USER_QUERY(iSchedulePK)))
+            rows_tuple = cursor.fetchall()
+            if (result != len(rows_tuple)):
+                msg = f"{text_log} 실패! (데이터 개수 불일치, {request_log}, 요청:{result}, 실제:{len(rows_tuple)})"
                 logger.error(msg)
                 raise HTTPException(status_code=500, detail=msg)
-            schedule_user_list_model = ScheduleUserListModel(user_list=ScheduleUserTable.TO_MODEL_LIST(rows_tuples))
+            user_list_model = UserListModel(user_list=UserTable.TO_MODEL_LIST(rows_tuple))
     logger.info(f"{text_log} 완료 ({request_log}:{result}개, {LOG.TO_ESTIMATED_TIME(dt)})")
-    return schedule_user_list_model
+    return user_list_model
