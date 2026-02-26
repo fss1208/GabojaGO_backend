@@ -21,8 +21,8 @@ class LocationTable(BaseTable):
             strPhone=row[6],
             strLink=row[7],
             chCategory=row[8],
-            ptLongitude=row[9],
-            ptLatitude=row[10]
+            ptLongitude=str(row[9]),
+            ptLatitude=str(row[10])
         )
 
     @staticmethod
@@ -44,8 +44,8 @@ class LocationTable(BaseTable):
             );"""
 
     @staticmethod
-    def TO_SELECT_MODEL_QUERY(lm: LocationModel) -> str:
-        return f"SELECT iPK,strName,strGroupCode,strGroupName,strGroupDetail,strAddress,strPhone,strLink,chCategory,ST_X(ptLongLat),ST_Y(ptLongLat) FROM {LocationTable.NAME} WHERE iPK={lm.iPK}"
+    def TO_SELECT_MODEL_QUERY(iLocationPK: int) -> str:
+        return f"SELECT iPK,strName,strGroupCode,strGroupName,strGroupDetail,strAddress,strPhone,strLink,chCategory,ST_X(ptLongLat),ST_Y(ptLongLat) FROM {LocationTable.NAME} WHERE iPK={iLocationPK}"
 
     @staticmethod
     def TO_SELECT_ID_QUERY(lm: LocationModel) -> str:

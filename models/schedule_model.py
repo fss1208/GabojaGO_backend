@@ -83,6 +83,31 @@ class ScheduleExpenseListModel(BaseModel):
 
 ###############################################################################################################################################################
 
+class ScheduleImageModel(BaseModel):
+    iPK: Optional[int] = Field(default=0, example="0")
+    iScheduleFK: int = Field(..., example="1", description="ScheduleTable.iPK")
+    iUserFK: int = Field(..., example="1", description="UserTable.iPK")
+    iLocationPK: Optional[int] = Field(default=0, example="0", description="LocationTable.iPK")
+    dtImage: datetime = Field(..., example="2026-02-23 15:11:23", description="이미지 촬영 일시")
+    ptLongitude: str = Field(..., example="127.1005")
+    ptLatitude: str = Field(..., example="37.5115")
+    strFile: str = Field(..., example="20260223151123.jpg", description="이미지 파일명")
+
+    @field_serializer('dtImage')
+    def serialize_dt(self, dt: datetime, _info):
+        return dt.strftime('%Y-%m-%d %H:%M:%S')
+
+    def to_log(self) -> str:
+        return f"{self.iPK}:{self.iScheduleFK}:{self.iUserFK}:{self.iLocationPK}"
+
+class ScheduleImageFrontModel(ScheduleImageModel):
+    location: Optional[LocationModel] = Field(None, description="장소 정보")
+
+class ScheduleImageListModel(BaseModel):
+    image_list: list[ScheduleImageFrontModel] = Field(..., description="일정에 등록된 이미지 목록")
+
+###############################################################################################################################################################
+
 class ScheduleUserModel(BaseModel):
     iPK: Optional[int] = Field(default=0, example="1")
     iScheduleFK: int = Field(..., example="1", description="사용자가 참석하는 일정")
