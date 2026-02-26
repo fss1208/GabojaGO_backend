@@ -2,9 +2,9 @@ from fastapi import APIRouter, Request
 from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from database.schedule.schedule_user_table import ScheduleUserTable
-from models.schedule_model import ScheduleUserModel, ScheduleUserListModel
 from database.user_table import UserTable
+from database.schedule.schedule_user_table import ScheduleUserTable
+from models.schedule_model import ScheduleUserModel
 from models.auth_model import UserListModel
 from library.JWT import AUTH_JWT
 from library.LOG import LOG

@@ -15,20 +15,21 @@ class ScheduleLocationView(BaseTable):
         return ScheduleLocationFrontModel(
             iPK=row[0],
             iScheduleFK=row[1],
-            dtSchedule=row[2],
-            strMemo=row[3],
+            iLocationFK=row[2],
+            dtSchedule=row[3],
+            strMemo=row[4],
             location=LocationModel(
-                iPK=row[4],
-                strName=row[5],
-                strGroupCode=row[6],
-                strGroupName=row[7],
-                strGroupDetail=row[8],
-                strAddress=row[9],
-                strPhone=row[10],
-                strLink=row[11],
-                chCategory=row[12],
-                ptLongitude=str(row[13]),
-                ptLatitude=str(row[14])
+                iPK=row[5],
+                strName=row[6],
+                strGroupCode=row[7],
+                strGroupName=row[8],
+                strGroupDetail=row[9],
+                strAddress=row[10],
+                strPhone=row[11],
+                strLink=row[12],
+                chCategory=row[13],
+                ptLongitude=str(row[14]),
+                ptLatitude=str(row[15])
             )
         )
 
@@ -40,7 +41,7 @@ class ScheduleLocationView(BaseTable):
     def TO_SELECT_MODEL_QUERY(iScheduleFK: int) -> str:
         return f"""
             SELECT
-               slt.iPK,slt.iScheduleFK,slt.dtSchedule,slt.strMemo,
+               slt.iPK,slt.iScheduleFK,slt.iLocationFK,slt.dtSchedule,slt.strMemo,
                lt.iPK,lt.strName,lt.strGroupCode,lt.strGroupName,lt.strGroupDetail,lt.strAddress,lt.strPhone,lt.strLink,lt.chCategory,ST_X(lt.ptLongLat),ST_Y(lt.ptLongLat)
             FROM {ScheduleLocationTable.NAME} AS slt
             JOIN {LocationTable.NAME} AS lt ON slt.iLocationFK = lt.iPK
