@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 #################################################################################################################
 
 @router.post("/append", summary="준비물 정보 추가", response_model=SchedulePreparationModel)
-def append_expense(schedule_preparation_model: SchedulePreparationModel, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
+def append_preparation(schedule_preparation_model: SchedulePreparationModel, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
     """
     사용자가 요청하는 일정에 준비물 추가
     - **SchedulePreparationModel.iSchedulePK: int** 필수 입력
@@ -43,7 +43,7 @@ def append_expense(schedule_preparation_model: SchedulePreparationModel, request
     return schedule_preparation_model
 
 @router.post("/modify", summary="준비물 정보 수정", response_model=SchedulePreparationModel)
-def modify_expense(schedule_preparation_model: SchedulePreparationModel, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
+def modify_preparation(schedule_preparation_model: SchedulePreparationModel, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
     """
     사용자가 요청하는 일정에 등록된 준비물 정보 수정
     - **SchedulePreparationModel.iPK: int** 필수 입력
@@ -65,7 +65,7 @@ def modify_expense(schedule_preparation_model: SchedulePreparationModel, request
     return schedule_preparation_model
 
 @router.post("/remove", summary="준비물 정보 삭제", response_model=dict)
-def remove_expense(iSchedulePreparationPK: int, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
+def remove_preparation(iSchedulePreparationPK: int, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
     """
     사용자가 요청하는 일정에 등록된 준비물 정보 삭제
     - **iSchedulePreparationPK: int** 필수 입력
@@ -87,7 +87,7 @@ def remove_expense(iSchedulePreparationPK: int, request: Request, auth: HTTPAuth
     return {"iSchedulePreparationPK": iSchedulePreparationPK}
 
 @router.get("/list", summary="준비물 정보 조회", response_model=SchedulePreparationListModel)
-def list_expense(iSchedulePK: int, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
+def list_preparation(iSchedulePK: int, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
     """
     사용자가 요청하는 일정에 등록된 준비물 정보 목록 조회
     - **iSchedulePK: int** 필수 입력
