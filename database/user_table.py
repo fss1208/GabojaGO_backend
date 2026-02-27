@@ -43,21 +43,21 @@ class UserTable(BaseTable):
             );"""
 
     @staticmethod
-    def TO_SELECT_LOGIN_QUERY(login_model: LoginRequestModel) -> str:
-        return f"SELECT * FROM {UserTable.NAME} WHERE strUserID='{login_model.strUserID.strip()}' AND strUserPW='{login_model.strUserPW.strip()}'"
+    def TO_SELECT_LOGIN_QUERY(lrm: LoginRequestModel) -> str:
+        return f"SELECT * FROM {UserTable.NAME} WHERE strUserID='{lrm.strUserID.strip()}' AND strUserPW='{lrm.strUserPW.strip()}'"
     
     @staticmethod
-    def TO_SELECT_MODEL_QUERY(user_model: UserModel) -> str:
-        return f"SELECT * FROM {UserTable.NAME} WHERE strUserID='{user_model.strUserID}'"
+    def TO_SELECT_MODEL_QUERY(strUserID: str) -> str:
+        return f"SELECT * FROM {UserTable.NAME} WHERE strUserID='{strUserID}'"
 
     @staticmethod
     def TO_SELECT_LIST_QUERY(query: str) -> str:
         return f"SELECT * FROM {UserTable.NAME} WHERE iPK IN ({query})"
 
     @staticmethod
-    def TO_INSERT_QUERY(user_model: UserModel) -> str:
+    def TO_INSERT_QUERY(um: UserModel) -> str:
         return f"INSERT INTO {UserTable.NAME} (strUserID,strUserPW,strName,strEmail,strPhone,strAddress,strImageFile) " + \
-               f"VALUES ('{user_model.strUserID}','{user_model.strUserPW}','{user_model.strName}','{user_model.strEmail}','{user_model.strPhone}','{user_model.strAddress}','{user_model.strImageFile}')"
+               f"VALUES ('{um.strUserID}','{um.strUserPW}','{um.strName}','{um.strEmail}','{um.strPhone}','{um.strAddress}','{um.strImageFile}')"
 
 ####################################################################################################################################################
 

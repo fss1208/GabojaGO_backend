@@ -4,9 +4,11 @@ from fastapi import APIRouter, Request
 from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
+from database.favorite_table import FavoriteTable
 from database.user_table import UserTable
 from models.auth_model import UserModel
 from models.auth_model import LoginRequestModel, LoginResponseModel
+
 from library.JWT import AUTH_JWT
 from library.LOG import LOG
 from library.DB import DB
@@ -30,27 +32,40 @@ def register(user_model: UserModel, request: Request):
     - **strEmail**:str 필수 입력
     """    
     dt = datetime.now()
-    text_log = LOG.TO_ROUTE_TEXT(request)
-    logger.info(f"{text_log} 요청 ({user_model})")
+    request_user = LOG.TO_REQUEST_USER(request)
+    logger.info(LOG.TO_MESSAGE(request, request_user, "요청", user_model.to_log()))
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
-            result = DB.EXECUTE(cursor, UserTable.TO_SELECT_MODEL_QUERY(user_model))
+            result = DB.EXECUTE(cursor, UserTable.TO_SELECT_MODEL_QUERY(user_model.strUserID))
             if (result != 0):
-                msg = f"{text_log} 실패! (사용자 ID 중복 : id={user_model.strUserID}, result={result})"
-                logger.error(msg)
-                raise HTTPException(status_code=400, detail=msg)
+                connection.rollback()
+                msg = f"사용자 ID 중복, id={user_model.strUserID}, result={result}"
+                logger.error(LOG.TO_MESSAGE(request, request_user, "실패!", msg, dt))
+                raise HTTPException(status_code=500, detail=msg)
+            #
             if (user_model.check_validation() == False):
-                msg = f"{text_log} 실패! (유효하지 않은 데이터 : {user_model})"
-                logger.error(msg)
-                raise HTTPException(status_code=400, detail=msg)
+                connection.rollback()
+                msg = f"유효하지 않은 데이터, {user_model}"
+                logger.error(LOG.TO_MESSAGE(request, request_user, "실패!", msg, dt))
+                raise HTTPException(status_code=500, detail=msg)
+            #
             result = DB.EXECUTE(cursor, UserTable.TO_INSERT_QUERY(user_model))
             if (result != 1):
-                msg = f"{text_log} 실패! (DB 등록 실패 : id={user_model.strUserID}, result={result})"
-                logger.error(msg)
+                connection.rollback()
+                msg = f"DB 등록 실패, id={user_model.strUserID}, result={result}"
+                logger.error(LOG.TO_MESSAGE(request, request_user, "실패!", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
-            connection.commit()
             user_model.iPK = cursor.lastrowid
-    logger.info(f"{text_log} 성공 ({user_model})")
+            #
+            result = DB.EXECUTE(cursor, FavoriteTable.TO_INSERT_QUERY(user_model.iPK, "기본 즐겨찾기"))
+            if (result != 1):
+                connection.rollback()
+                msg = f"기본 즐겨찾기 등록 실패, result={result}"
+                logger.error(LOG.TO_MESSAGE(request, request_user, "실패!", msg, dt))
+                raise HTTPException(status_code=500, detail=msg)
+            #
+            connection.commit()
+    logger.info(LOG.TO_MESSAGE(request, request_user, "성공", user_model.to_log(), dt))
     return user_model
 
 @router.post("/login", summary="로그인", response_model=LoginResponseModel)
@@ -61,28 +76,26 @@ def login(request_model: LoginRequestModel, request: Request):
     - **strUserPW**:str 필수 입력
     """
     dt = datetime.now()
-    text_log = LOG.TO_ROUTE_TEXT(request)
-    logger.info(f"{text_log} 요청 ({request_model.strUserID})")
-    logger.debug(f"Request ({request_model})")
+    request_user = LOG.TO_REQUEST_USER(request)
+    logger.info(LOG.TO_MESSAGE(request, request_user, "요청", request_model.strUserID))
     user_model = None
     dbname = os.getenv("DBNAME")
     with DB.CONNECT(dbname) as connection:
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, UserTable.TO_SELECT_LOGIN_QUERY(request_model))
-            if (result == 0):
-                msg = f"{text_log} 실패! (아이디 또는 비밀번호 불일치 : {request_model.strUserID})"
-                logger.error(msg)
+            if (result != 1):
+                msg = f"아이디 또는 비밀번호 불일치, {request_model.strUserID}"
+                logger.error(LOG.TO_MESSAGE(request, request_user, "실패!", msg, dt))
                 raise HTTPException(status_code=400, detail=msg)
-            rows_tuple = cursor.fetchall()
-            user_model = UserTable.TO_MODEL(rows_tuple[0])
-            logger.debug(f"UserModel({user_model})")
+            row_tuple = cursor.fetchone()
+            user_model = UserTable.TO_MODEL(row_tuple)
     # 로그인 성공 시 토큰 생성
     token = AUTH_JWT.CREATE_TOKEN(user_model)
     response_model = LoginResponseModel(
         access_token = token,
         token_type = "bearer"
     )
-    logger.info(f"{text_log} 성공 ({user_model.strUserID} {user_model.strName})")
+    logger.info(LOG.TO_MESSAGE(request, request_user, "성공", user_model.to_log(), dt))
     return response_model
 
 @router.get("/test", summary="사용자 인증 확인")
