@@ -108,6 +108,20 @@ class ScheduleImageListModel(BaseModel):
 
 ###############################################################################################################################################################
 
+class SchedulePreparationModel(BaseModel):
+    iPK: Optional[int] = Field(default=0, example="0")
+    iScheduleFK: int = Field(..., example="1", description="ScheduleTable.iPK")
+    strName: str = Field(..., example="준비물 이름")
+    bCheck: bool = Field(..., example="False", description="준비물 체크 여부")
+
+    def to_log(self) -> str:
+        return f"{self.iPK}:{self.iScheduleFK}:{self.strName}:{self.bCheck}"
+
+class SchedulePreparationListModel(BaseModel):
+    preparation_list: list[SchedulePreparationModel] = Field(..., description="일정에 등록된 준비물 목록")
+
+###############################################################################################################################################################
+
 class ScheduleUserModel(BaseModel):
     iPK: Optional[int] = Field(default=0, example="1")
     iScheduleFK: int = Field(..., example="1", description="사용자가 참석하는 일정")

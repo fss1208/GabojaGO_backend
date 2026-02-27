@@ -11,6 +11,7 @@ from routes import schedule
 from routes import schedule_location
 from routes import schedule_expense
 from routes import schedule_image
+from routes import schedule_preparation
 from routes import schedule_user
 
 load_dotenv(override=True)
@@ -45,6 +46,7 @@ app.include_router(schedule.router, prefix="/schedule", tags=["Schedule Manageme
 app.include_router(schedule_location.router, prefix="/schedule/location", tags=["Schedule Location Management"])
 app.include_router(schedule_expense.router, prefix="/schedule/expense", tags=["Schedule Expense Management"])
 app.include_router(schedule_image.router, prefix="/schedule/image", tags=["Schedule Image Management"])
+app.include_router(schedule_preparation.router, prefix="/schedule/preparation", tags=["Schedule Preparation Management"])
 app.include_router(schedule_user.router, prefix="/schedule/user", tags=["Schedule User Management"])
 
 @app.get("/")
