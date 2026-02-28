@@ -9,6 +9,7 @@ from routes import auth
 from routes import favorite
 from routes import favorite_location
 from routes import location
+from routes import location_review
 from routes import schedule
 from routes import schedule_location
 from routes import schedule_expense
@@ -25,7 +26,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 logger.debug("LOG_LEVEL 설정 ({})".format(logging.getLevelName(log_level)))
-app = FastAPI(title="가보자GO", version="0.1.0", description="Backend API Specification")
+app = FastAPI(title="가보자GO", version="0.1.0", description="Backend API Specification",
+    swagger_ui_parameters={"persistAuthorization": True} # Swagger UI에서 인증 정보 유지 (F5해도 유지)
+)
 
 # 1. 허용할 출처(Origin) 목록 정의
 origins = [
@@ -46,6 +49,7 @@ app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(favorite.router, prefix="/favorite", tags=["Favorite Management"])
 app.include_router(favorite_location.router, prefix="/favorite/location", tags=["Favorite Location Management"])
 app.include_router(location.router, prefix="/location", tags=["Location Management"])
+app.include_router(location_review.router, prefix="/location/review", tags=["Location Review Management"])
 app.include_router(schedule.router, prefix="/schedule", tags=["Schedule Management"])
 app.include_router(schedule_location.router, prefix="/schedule/location", tags=["Schedule Location Management"])
 app.include_router(schedule_expense.router, prefix="/schedule/expense", tags=["Schedule Expense Management"])

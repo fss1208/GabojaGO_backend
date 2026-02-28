@@ -1,5 +1,6 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 from typing import Optional
+from datetime import datetime
 
 class KakaoMapSearchRequestModel(BaseModel):
     query: str = Field(..., max_length=255, example="성산일출봉")    # 검색어
@@ -29,6 +30,30 @@ class LocationModel(BaseModel):
 
 class LocationListModel(BaseModel):
     location_list: list[LocationModel] = Field(..., description="장소 정보 목록")
+
+###############################################################################################################################################################
+
+class LocationReviewModel(BaseModel):
+    iPK: int = Field(..., example=0, description="LocationReviewTable.iPK")
+    iLocationFK: int = Field(..., example=2062374957, description="LocationTable.iPK")
+    iUserFK: int = Field(..., example=0, description="UserTable.iPK")
+    nScore: int = Field(..., ge=0, le=5, example=5, description="평점 (0 ~ 5)")
+    bRevisit: bool = Field(..., example=False, description="다시 방문할 계획 (True/False)")
+    strReview: str = Field(..., max_length=1024, example="장소에 대한 소감", description="리뷰")
+    dtCreate: datetime = Field(..., example="2026-02-28 10:20:30", description="리뷰 작성 시간")
+    #
+    @field_serializer('dtCreate')
+    def serialize_datetime(self, dt: datetime, _info):
+        return dt.strftime('%Y-%m-%d %H:%M:%S')
+    #
+    def to_log(self) -> str:
+        return f"{self.iPK}:{self.iLocationFK}:{self.iUserFK}:{self.nScore}:{self.bRevisit}"
+
+class LocationReviewFrontModel(LocationReviewModel): # 미사용
+    location: LocationModel = Field(..., description="장소 정보")
+
+class LocationReviewListModel(BaseModel):
+    review_list: list[LocationReviewModel] = Field(..., description="장소 리뷰 목록")
 
 ###############################################################################################################################################################
 
