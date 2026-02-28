@@ -61,20 +61,14 @@ def modify_location_review(location_review_model: LocationReviewModel, request: 
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, LocationReviewTable.TO_UPDATE_QUERY(location_review_model))
             if (result != 1):
-                connection.rollback()
-                if (result == 0):
-                    if (location_review_model.iPK != 0):
-                        count = DB.EXECUTE(cursor, LocationReviewTable.TO_SELECT_MODEL_QUERY(location_review_model.iPK))
-                        if (count != 0):
-                            msg = f"데이터 변경사항이 없음, {location_review_model.to_log()}"
-                        else:
-                            msg = f"존재하지 않은 iPK, {location_review_model.to_log()}"
-                    else:
-                        msg = f"iPK = {location_review_model.iPK}, {location_review_model.to_log()}"
-                else:
-                    msg = f"DB UPDATE 실패, {location_review_model.to_log()}"
-                logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
-                raise HTTPException(status_code=500, detail=msg)
+                count = DB.EXECUTE(cursor, LocationReviewTable.TO_SELECT_MODEL_QUERY(location_review_model.iPK))
+                if (count == 0):
+                    connection.rollback()
+                    msg = f"존재하지 않은 iPK, {location_review_model.to_log()}"
+                    logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
+                    raise HTTPException(status_code=500, detail=msg)
+                else: # (count == 1)
+                    logger.debug(LOG.TO_MESSAGE(request, login_user.to_log(), "데이터 변경사항 없음", location_review_model.to_log()))
             connection.commit()
     logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "완료", location_review_model.to_log(), dt))
     return location_review_model
