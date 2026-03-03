@@ -23,7 +23,7 @@ class FavoriteLocationTable(BaseTable):
                 iLocationFK BIGINT UNSIGNED NOT NULL,
                 dtCreate DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (iFavoriteFK) REFERENCES favorite(iPK) ON DELETE CASCADE,
-                FOREIGN KEY (iLocationFK) REFERENCES location(iPK)
+                FOREIGN KEY (iLocationFK) REFERENCES location(iPK) ON DELETE CASCADE
             );"""
 
     @staticmethod
@@ -33,6 +33,10 @@ class FavoriteLocationTable(BaseTable):
     @staticmethod
     def TO_INSERT_QUERY(iFavoriteFK: int, iLocationFK: int) -> str:
         return f"INSERT INTO {FavoriteLocationTable.NAME} (iFavoriteFK,iLocationFK) VALUES ({iFavoriteFK},{iLocationFK})"
+
+    @staticmethod
+    def TO_UPDATE_QUERY(iFavoriteLocationPK: int, iFavoriteFK: int) -> str:
+        return f"UPDATE {FavoriteLocationTable.NAME} SET iFavoriteFK={iFavoriteFK} WHERE iPK={iFavoriteLocationPK}"
 
     @staticmethod
     def TO_DELETE_QUERY(iFavoriteLocationPK: int) -> str:

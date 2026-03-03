@@ -3,6 +3,7 @@ from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from database.location_table import LocationTable
+from database.favorite_table import FavoriteTable
 from database.favorite.favorite_location_view import FavoriteLocationView
 from database.favorite.favorite_location_table import FavoriteLocationTable
 from models.favorite_model import FavoriteLocationModel, FavoriteLocationListModel
@@ -46,6 +47,37 @@ def append_favorite_location(favorite_location_model: FavoriteLocationModel, req
                 logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
             favorite_location_model.iPK = cursor.lastrowid
+            connection.commit()
+    logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "완료", favorite_location_model.to_log(), dt))
+    return favorite_location_model
+
+@router.post("/modify", summary="즐겨찾기 수정", response_model=FavoriteLocationModel)
+def modify_favorite_location(favorite_location_model: FavoriteLocationModel, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
+    """
+    사용자가 요청하는 일정에 등록된 준비물 정보 수정
+    - **FavoriteLocationModel.iPK: int** 필수 입력
+    - **FavoriteLocationModel.iFavoriteFK: int** 수정 항목
+    """
+    dt = datetime.now()
+    login_user = AUTH_JWT.TO_USER_MODEL(auth)
+    logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "요청", favorite_location_model.to_log()))
+    with DB.CONNECT() as connection:
+        with connection.cursor() as cursor:
+            result = DB.EXECUTE(cursor, FavoriteTable.TO_SELECT_MODEL_QUERY(favorite_location_model.iFavoriteFK))
+            if (result != 1):
+                msg = f"존재하지 않은 iFavoriteFK:{favorite_location_model.iFavoriteFK}, {favorite_location_model.to_log()}"
+                logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
+                raise HTTPException(status_code=500, detail=msg)
+            result = DB.EXECUTE(cursor, FavoriteLocationTable.TO_UPDATE_QUERY(favorite_location_model.iPK, favorite_location_model.iFavoriteFK))
+            if (result != 1):
+                count = DB.EXECUTE(cursor, FavoriteLocationTable.TO_SELECT_MODEL_QUERY(favorite_location_model.iPK))
+                if (count == 0):
+                    connection.rollback()
+                    msg = f"존재하지 않은 iPK:{favorite_location_model.iPK}, {favorite_location_model.to_log()}"
+                    logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
+                    raise HTTPException(status_code=500, detail=msg)
+                else: # (count == 1)
+                    logger.debug(LOG.TO_MESSAGE(request, login_user.to_log(), "데이터 변경사항 없음", favorite_location_model.to_log()))
             connection.commit()
     logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "완료", favorite_location_model.to_log(), dt))
     return favorite_location_model
