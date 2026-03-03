@@ -3,29 +3,20 @@ from typing import Optional
 import logging
 
 from library.DB import DB, BaseTable
-from models.schedule_model import ScheduleImageModel, ScheduleImageFrontModel
+from models.schedule_model import ScheduleImageModel, ScheduleImageModel
 
 class ScheduleImageTable(BaseTable):
 
     NAME = "schedule_image"
+    MODEL_COLUMNS = "iPK,iScheduleFK,iImageFK"
 
     @staticmethod
-    def TO_MODEL(row: tuple) -> ScheduleImageFrontModel:
-        return ScheduleImageFrontModel(
+    def TO_MODEL(row: tuple) -> ScheduleImageModel:
+        return ScheduleImageModel(
             iPK=row[0],
             iScheduleFK=row[1],
-            iUserFK=row[2],
-            iLocationPK=row[3],
-            dtImage=row[4],
-            ptLongitude=str(row[5]),
-            ptLatitude=str(row[6]),
-            strFile=row[7],
-            location=None
+            iImageFK=row[2]
         )
-
-    @staticmethod
-    def TO_MODEL_LIST(rows_tuple: tuple) -> list[ScheduleImageFrontModel]:
-        return [ScheduleImageTable.TO_MODEL(row) for row in rows_tuple]
 
     @staticmethod
     def TO_CREATE_QUERY() -> str:
@@ -33,32 +24,18 @@ class ScheduleImageTable(BaseTable):
             CREATE TABLE {ScheduleImageTable.NAME} (
                 iPK INT AUTO_INCREMENT PRIMARY KEY,
                 iScheduleFK INT NOT NULL,
-                iUserFK INT NOT NULL,
-                iLocationPK INT DEFAULT 0,
-                dtImage DATETIME NOT NULL,
-                ptLongLat POINT NOT NULL,
-                strFile VARCHAR(1024) NOT NULL,
+                iImageFK INT NOT NULL,
                 FOREIGN KEY (iScheduleFK) REFERENCES schedule(iPK) ON DELETE CASCADE,
-                FOREIGN KEY (iUserFK) REFERENCES user(iPK),
-                SPATIAL INDEX(ptLongLat)
+                FOREIGN KEY (iImageFK) REFERENCES image(iPK) ON DELETE CASCADE
             );"""
 
     @staticmethod
-    def TO_SELECT_MODEL_QUERY(iPK: int) -> str:
-        return f"SELECT iPK,iScheduleFK,iUserFK,iLocationPK,dtImage,ST_X(ptLongLat),ST_Y(ptLongLat),strFile FROM {ScheduleImageTable.NAME} WHERE iPK={iPK}"
+    def TO_SELECT_MODEL_QUERY(iScheduleImagePK: int) -> str:
+        return f"SELECT {ScheduleImageTable.MODEL_COLUMNS} FROM {ScheduleImageTable.NAME} WHERE iPK={iScheduleImagePK}"
 
     @staticmethod
-    def TO_SELECT_LIST_QUERY(iScheduleFK: int) -> str:
-        return f"SELECT iPK,iScheduleFK,iUserFK,iLocationPK,dtImage,ST_X(ptLongLat),ST_Y(ptLongLat),strFile FROM {ScheduleImageTable.NAME} WHERE iScheduleFK={iScheduleFK}"
-
-    @staticmethod
-    def TO_INSERT_QUERY(sim: ScheduleImageModel) -> str:
-        return f"INSERT INTO {ScheduleImageTable.NAME} (iScheduleFK,iUserFK,iLocationPK,dtImage,ptLongLat,strFile) " + \
-               f"VALUES ({sim.iScheduleFK},{sim.iUserFK},{sim.iLocationPK},'{sim.dtImage}',{DB.TO_POINT(sim.ptLongitude,sim.ptLatitude)},'{sim.strFile}')"
-
-    @staticmethod
-    def TO_UPDATE_QUERY(sim: ScheduleImageModel) -> str:
-        return f"UPDATE {ScheduleImageTable.NAME} SET iLocationPK={sim.iLocationPK},dtImage='{sim.dtImage}' WHERE iPK={sim.iPK}"
+    def TO_INSERT_QUERY(iScheduleFK: int, iImageFK: int) -> str:
+        return f"INSERT INTO {ScheduleImageTable.NAME} (iScheduleFK,iImageFK) VALUES ({iScheduleFK},{iImageFK})"
 
     @staticmethod
     def TO_DELETE_QUERY(iScheduleImagePK: int) -> str:

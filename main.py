@@ -7,6 +7,7 @@ import os
 
 from routes import auth
 from routes import favorite
+from routes import favorite_image
 from routes import favorite_location
 from routes import location
 from routes import location_review
@@ -47,6 +48,7 @@ app.add_middleware(
 # tags: '/docs' & '/redoc' 페이지에서 해당 그룹으로 묶어서 표시
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(favorite.router, prefix="/favorite", tags=["Favorite Management"])
+app.include_router(favorite_image.router, prefix="/favorite/image", tags=["Favorite Image Management"])
 app.include_router(favorite_location.router, prefix="/favorite/location", tags=["Favorite Location Management"])
 app.include_router(location.router, prefix="/location", tags=["Location Management"])
 app.include_router(location_review.router, prefix="/location/review", tags=["Location Review Management"])
