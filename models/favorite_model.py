@@ -22,6 +22,11 @@ class FavoriteLocationModel(BaseModel):
     iPK: Optional[int] = Field(default=0, example=0)
     iFavoriteFK: int = Field(..., example=1)
     iLocationFK: int = Field(..., example=1)
+    dtFavorite: datetime = Field(..., example="2026-03-03 12:34:56", description="즐겨찾기 등록 일시")
+
+    @field_serializer('dtFavorite')
+    def serialize_dtFavorite(self, dt: datetime, _info):
+        return dt.strftime('%Y-%m-%d %H:%M:%S')
 
     def to_log(self) -> str:
         return f"{self.iPK}:{self.iFavoriteFK}:{self.iLocationFK}"

@@ -5,13 +5,15 @@ import logging
 class FavoriteLocationTable(BaseTable):
 
     NAME = "favorite_location"
+    MODEL_COLUMNS = "iPK,iFavoriteFK,iLocationFK,dtFavorite"
 
     @staticmethod
     def TO_MODEL(row: tuple) -> FavoriteLocationModel:
         return FavoriteLocationModel(
             iPK=row[0],
             iFavoriteFK=row[1],
-            iLocationFK=row[2]
+            iLocationFK=row[2],
+            dtFavorite=row[3]
         )
 
     @staticmethod
@@ -21,14 +23,18 @@ class FavoriteLocationTable(BaseTable):
                 iPK INT AUTO_INCREMENT PRIMARY KEY,
                 iFavoriteFK INT NOT NULL,
                 iLocationFK BIGINT UNSIGNED NOT NULL,
-                dtCreate DATETIME DEFAULT CURRENT_TIMESTAMP,
+                dtFavorite DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (iFavoriteFK) REFERENCES favorite(iPK) ON DELETE CASCADE,
                 FOREIGN KEY (iLocationFK) REFERENCES location(iPK) ON DELETE CASCADE
             );"""
 
     @staticmethod
     def TO_SELECT_MODEL_QUERY(iFavoriteLocationPK: int) -> str:
-        return f"SELECT iPK,iFavoriteFK,iLocationFK FROM {FavoriteLocationTable.NAME} WHERE iPK={iFavoriteLocationPK}"
+        return f"SELECT {FavoriteLocationTable.MODEL_COLUMNS} FROM {FavoriteLocationTable.NAME} WHERE iPK={iFavoriteLocationPK}"
+
+    @staticmethod
+    def TO_SELECT_LOCATION_QUERY(iFavoriteFK: int, iLocationFK: int) -> str:
+        return f"SELECT * FROM {FavoriteLocationTable.NAME} WHERE iFavoriteFK={iFavoriteFK} AND iLocationFK={iLocationFK}"
 
     @staticmethod
     def TO_INSERT_QUERY(iFavoriteFK: int, iLocationFK: int) -> str:

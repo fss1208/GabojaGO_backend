@@ -16,18 +16,19 @@ class FavoriteLocationView(BaseTable):
             iPK=row[0],
             iFavoriteFK=row[1],
             iLocationFK=row[2],
+            dtFavorite=row[3],
             location=LocationModel(
-                iPK=row[3],
-                strName=row[4],
-                strGroupCode=row[5],
-                strGroupName=row[6],
-                strGroupDetail=row[7],
-                strAddress=row[8],
-                strPhone=row[9],
-                strLink=row[10],
-                chCategory=row[11],
-                ptLongitude=str(row[12]),
-                ptLatitude=str(row[13])
+                iPK=row[4],
+                strName=row[5],
+                strGroupCode=row[6],
+                strGroupName=row[7],
+                strGroupDetail=row[8],
+                strAddress=row[9],
+                strPhone=row[10],
+                strLink=row[11],
+                chCategory=row[12],
+                ptLongitude=str(row[13]),
+                ptLatitude=str(row[14])
             )
         )
 
@@ -39,11 +40,12 @@ class FavoriteLocationView(BaseTable):
     def TO_SELECT_LIST_QUERY(iFavoritePK: int) -> str:
         return f"""
             SELECT
-               flt.iPK,flt.iFavoriteFK,flt.iLocationFK,
+               flt.iPK,flt.iFavoriteFK,flt.iLocationFK,flt.dtFavorite,
                lt.iPK,lt.strName,lt.strGroupCode,lt.strGroupName,lt.strGroupDetail,lt.strAddress,lt.strPhone,lt.strLink,lt.chCategory,ST_X(lt.ptLongLat),ST_Y(lt.ptLongLat)
             FROM {FavoriteLocationTable.NAME} AS flt
             JOIN {LocationTable.NAME} AS lt ON flt.iLocationFK = lt.iPK
-            WHERE flt.iFavoriteFK = {iFavoritePK}"""
+            WHERE flt.iFavoriteFK = {iFavoritePK}
+            ORDER BY flt.dtFavorite DESC"""
 
 ####################################################################################################################################################
 

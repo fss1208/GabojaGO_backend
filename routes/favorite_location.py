@@ -40,10 +40,15 @@ def append_favorite_location(favorite_location_model: FavoriteLocationModel, req
                 msg = f"장소가 존재하지 않아 등록 불가, {favorite_location_model.to_log()}"
                 logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
+            result = DB.EXECUTE(cursor, FavoriteLocationTable.TO_SELECT_LOCATION_QUERY(favorite_location_model.iFavoriteFK, favorite_location_model.iLocationFK))
+            if (result != 0):
+                msg = f"이미 즐겨찾기에 등록된 장소, {favorite_location_model.to_log()}"
+                logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
+                raise HTTPException(status_code=500, detail=msg)
             result = DB.EXECUTE(cursor, FavoriteLocationTable.TO_INSERT_QUERY(favorite_location_model.iFavoriteFK, favorite_location_model.iLocationFK))
             if (result != 1):
                 connection.rollback()
-                msg = f"DB 등록 실패, {favorite_location_model.to_log()}"
+                msg = f"DB 등록 실패, {favorite_location_model.to_log()}, count:{result}"
                 logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
             favorite_location_model.iPK = cursor.lastrowid
