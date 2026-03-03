@@ -2,9 +2,11 @@ from fastapi import APIRouter, Request
 from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
+from database.location_table import LocationTable
 from database.favorite.favorite_location_view import FavoriteLocationView
 from database.favorite.favorite_location_table import FavoriteLocationTable
 from models.favorite_model import FavoriteLocationModel, FavoriteLocationListModel
+
 from library.JWT import AUTH_JWT
 from library.LOG import LOG
 from library.DB import DB
@@ -23,7 +25,7 @@ logger = logging.getLogger(__name__)
 @router.post("/append", summary="즐겨찾기에 장소 추가", response_model=FavoriteLocationModel)
 def append_favorite_location(favorite_location_model: FavoriteLocationModel, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
     """
-    사용자가 요청에 의한 즐겨찾기에 장소 추가
+    즐겨찾기에 사용자가 요청한 장소 추가
     - **FavoriteLocationModel.iFavoriteFK: int** 필수 입력
     - **FavoriteLocationModel.iLocationFK: int** 필수 입력
     """
@@ -32,6 +34,11 @@ def append_favorite_location(favorite_location_model: FavoriteLocationModel, req
     logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "요청", favorite_location_model.to_log()))
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
+            result = DB.EXECUTE(cursor, LocationTable.TO_SELECT_MODEL_QUERY(favorite_location_model.iLocationFK))
+            if (result != 1):
+                msg = f"장소가 존재하지 않아 등록 불가, {favorite_location_model.to_log()}"
+                logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
+                raise HTTPException(status_code=500, detail=msg)
             result = DB.EXECUTE(cursor, FavoriteLocationTable.TO_INSERT_QUERY(favorite_location_model.iFavoriteFK, favorite_location_model.iLocationFK))
             if (result != 1):
                 connection.rollback()
@@ -46,7 +53,7 @@ def append_favorite_location(favorite_location_model: FavoriteLocationModel, req
 @router.post("/remove", summary="즐겨찾기에 장소 삭제", response_model=dict)
 def remove_favorite_location(iFavoriteLocationPK: int, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
     """
-    사용자가 요청에 의한 즐겨찾기에 장소 삭제
+    즐겨찾기에 사용자가 요청한 장소 삭제
     - **iFavoriteLocationPK: int** 필수 입력
     """
     dt = datetime.now()
