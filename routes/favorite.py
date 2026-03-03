@@ -31,7 +31,7 @@ def append_favorite(favorite_model: FavoriteModel, request: Request, auth: HTTPA
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
             favorite_model.iUserFK = login_user.iPK
-            result = DB.EXECUTE(cursor, FavoriteTable.TO_INSERT_QUERY(favorite_model.iUserFK, f"{login_user.strName}님의 {favorite_model.strName}"))
+            result = DB.EXECUTE(cursor, FavoriteTable.TO_INSERT_QUERY(favorite_model.iUserFK, favorite_model.strName))
             if (result != 1):
                 connection.rollback()
                 msg = f"DB 등록 실패, {favorite_model.to_log()}"

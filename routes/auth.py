@@ -57,7 +57,7 @@ def register(user_model: UserModel, request: Request):
                 raise HTTPException(status_code=500, detail=msg)
             user_model.iPK = cursor.lastrowid
             #
-            result = DB.EXECUTE(cursor, FavoriteTable.TO_INSERT_QUERY(user_model.iPK, "기본 즐겨찾기"))
+            result = DB.EXECUTE(cursor, FavoriteTable.TO_INSERT_QUERY(user_model.iPK, "나의 즐겨찾기"))
             if (result != 1):
                 connection.rollback()
                 msg = f"기본 즐겨찾기 등록 실패, result={result}"
