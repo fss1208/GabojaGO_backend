@@ -4,9 +4,9 @@ from fastapi import APIRouter, Request
 from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from database.favorite_table import FavoriteTable
 from database.user_table import UserTable
-from models.auth_model import UserModel
+from database.favorite_table import FavoriteTable
+from models.auth_model import UserModel, UserListModel
 from models.auth_model import LoginRequestModel, LoginResponseModel
 
 from library.JWT import AUTH_JWT
@@ -97,6 +97,23 @@ def login(request_model: LoginRequestModel, request: Request):
     )
     logger.info(LOG.TO_MESSAGE(request, request_user, "성공", user_model.to_log(), dt))
     return response_model
+
+@router.get("/user/search", summary="사용자 찾기", response_model=UserListModel)
+def search_by_id(strUserName: str, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
+    """
+    사용자 이름으로 사용자 찾기
+    """
+    dt = datetime.now()
+    user_model = AUTH_JWT.TO_USER_MODEL(auth)
+    request_user = LOG.TO_REQUEST_USER(request)
+    logger.info(LOG.TO_MESSAGE(request, request_user, "요청", strUserName))
+    with DB.CONNECT() as connection:
+        with connection.cursor() as cursor:
+            result = DB.EXECUTE(cursor, UserTable.TO_SELECT_NAME_QUERY(strUserName))
+            rows_tuple = cursor.fetchall()
+            user_list = UserTable.TO_MODEL_LIST(rows_tuple)
+    logger.info(LOG.TO_MESSAGE(request, request_user, "완료", f"검색어={strUserName}, 검색결과={len(user_list)}명", dt))
+    return UserListModel(user_list=user_list)
 
 @router.get("/test", summary="사용자 인증 확인")
 def test(auth: HTTPAuthorizationCredentials = Depends(security)):

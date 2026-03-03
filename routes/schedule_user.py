@@ -81,7 +81,7 @@ def list_schedule(iSchedulePK: int, request: Request, auth: HTTPAuthorizationCre
     logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "요청", request_log))
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
-            result = DB.EXECUTE(cursor, UserTable.TO_SELECT_LIST_QUERY(ScheduleUserTable.TO_SELECT_USER_QUERY(iSchedulePK)))
+            result = DB.EXECUTE(cursor, UserTable.TO_SELECT_SUB_QUERY(ScheduleUserTable.TO_SELECT_USER_QUERY(iSchedulePK)))
             rows_tuple = cursor.fetchall()
             if (result != len(rows_tuple)):
                 msg = f"데이터 개수 불일치, {request_log}, 요청:{result}, 실제:{len(rows_tuple)}"

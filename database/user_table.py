@@ -24,6 +24,8 @@ class UserTable(BaseTable):
         user_model_list = [UserTable.TO_MODEL(row) for row in rows_tuple]
         for user_model in user_model_list:
             user_model.strUserPW = ""
+            user_model.strPhone = ""
+            user_model.strAddress = ""
             user_model.strImageFile = ""
         return user_model_list
 
@@ -51,8 +53,12 @@ class UserTable(BaseTable):
         return f"SELECT * FROM {UserTable.NAME} WHERE strUserID='{strUserID}'"
 
     @staticmethod
-    def TO_SELECT_LIST_QUERY(query: str) -> str:
+    def TO_SELECT_SUB_QUERY(query: str) -> str:
         return f"SELECT * FROM {UserTable.NAME} WHERE iPK IN ({query})"
+
+    @staticmethod
+    def TO_SELECT_NAME_QUERY(strUserName: str) -> str:
+        return f"SELECT * FROM {UserTable.NAME} WHERE strName LIKE '%{strUserName}%'"
 
     @staticmethod
     def TO_INSERT_QUERY(um: UserModel) -> str:
