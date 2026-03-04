@@ -3,9 +3,11 @@ from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from database.user_table import UserTable
+from database.schedule_table import ScheduleTable
 from database.schedule.schedule_user_table import ScheduleUserTable
 from models.schedule_model import ScheduleUserModel
 from models.auth_model import UserListModel
+
 from library.JWT import AUTH_JWT
 from library.LOG import LOG
 from library.DB import DB
@@ -33,17 +35,26 @@ def append_schedule_user(schedule_user_model: ScheduleUserModel, request: Reques
     logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "요청", schedule_user_model.to_log()))
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
+            # 스케줄을 생성한 사용자는 동행자에 포함시킬 수 없음
+            result = DB.EXECUTE(cursor, ScheduleTable.TO_SELECT_CREATE_USER_QUERY(schedule_user_model.iScheduleFK, schedule_user_model.iUserFK))
+            if (result != 0):
+                connection.rollback()
+                msg = f"스케줄을 생성한 사용자는 동행자에 포함 불가, {schedule_user_model.to_log()}"
+                logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
+                raise HTTPException(status_code=500, detail=msg)
+            # 이미 일정에 등록된 사용자는 동행자에 포함시킬 수 없음
             result = DB.EXECUTE(cursor, ScheduleUserTable.TO_SELECT_DUPLICATED_USER_QUERY(schedule_user_model))
             if (result != 0):
                 connection.rollback()
-                msg = f"이미 등록된 사용자, {schedule_user_model.to_log()}"
-                logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "에러", msg, dt))
+                msg = f"이미 일정에 등록된 사용자, {schedule_user_model.to_log()}"
+                logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
+            # 동행자 추가
             result = DB.EXECUTE(cursor, ScheduleUserTable.TO_INSERT_QUERY(schedule_user_model))
             if (result != 1):
                 connection.rollback()
-                msg = f"DB 등록 실패, {schedule_user_model.to_log()}"
-                logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "에러", msg, dt))
+                msg = f"DB 등록 실패, result:{result}, {schedule_user_model.to_log()}"
+                logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
             schedule_user_model.iPK = cursor.lastrowid
             connection.commit()

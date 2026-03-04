@@ -58,8 +58,12 @@ class ScheduleTable(BaseTable):
             );"""
 
     @staticmethod
-    def TO_SELECT_MODEL_QUERY(sm: ScheduleModel) -> str:
-        return f"SELECT * FROM {ScheduleTable.NAME} WHERE iPK={sm.iPK}"
+    def TO_SELECT_MODEL_QUERY(iSchedulePK: int) -> str:
+        return f"SELECT * FROM {ScheduleTable.NAME} WHERE iPK={iSchedulePK}"
+
+    @staticmethod
+    def TO_SELECT_CREATE_USER_QUERY(iSchedulePK: int, iUserFK: int) -> str:
+        return f"SELECT iUserFK FROM {ScheduleTable.NAME} WHERE iPK={iSchedulePK} AND iUserFK={iUserFK}"
 
     @staticmethod
     def TO_SELECT_LIST_QUERY(iUserFK: int, chStatus: str) -> str:
