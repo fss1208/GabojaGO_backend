@@ -69,16 +69,21 @@ def modify_favorite_location(favorite_location_model: FavoriteLocationModel, req
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, FavoriteTable.TO_SELECT_MODEL_QUERY(favorite_location_model.iFavoriteFK))
-            if (result != 1):
-                msg = f"존재하지 않은 iFavoriteFK:{favorite_location_model.iFavoriteFK}, {favorite_location_model.to_log()}"
+            if (result == 0):
+                msg = f"존재하지 않은 즐겨찾기, {favorite_location_model.to_log()}"
                 logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
-            result = DB.EXECUTE(cursor, FavoriteLocationTable.TO_UPDATE_QUERY(favorite_location_model.iPK, favorite_location_model.iFavoriteFK))
+            result = DB.EXECUTE(cursor, FavoriteLocationTable.TO_SELECT_LOCATION_QUERY(favorite_location_model.iFavoriteFK, favorite_location_model.iLocationFK))
+            if (result != 0):
+                msg = f"이미 즐겨찾기에 등록된 장소, {favorite_location_model.to_log()}"
+                logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
+                raise HTTPException(status_code=500, detail=msg)
+            result = DB.EXECUTE(cursor, FavoriteLocationTable.TO_UPDATE_QUERY(favorite_location_model.iPK, favorite_location_model.iFavoriteFK, favorite_location_model.iLocationFK))
             if (result != 1):
                 count = DB.EXECUTE(cursor, FavoriteLocationTable.TO_SELECT_MODEL_QUERY(favorite_location_model.iPK))
                 if (count == 0):
                     connection.rollback()
-                    msg = f"존재하지 않은 iPK:{favorite_location_model.iPK}, {favorite_location_model.to_log()}"
+                    msg = f"존재하지 않은 장소, {favorite_location_model.to_log()}"
                     logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
                     raise HTTPException(status_code=500, detail=msg)
                 else: # (count == 1)

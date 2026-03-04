@@ -41,8 +41,8 @@ class FavoriteLocationTable(BaseTable):
         return f"INSERT INTO {FavoriteLocationTable.NAME} (iFavoriteFK,iLocationFK) VALUES ({iFavoriteFK},{iLocationFK})"
 
     @staticmethod
-    def TO_UPDATE_QUERY(iFavoriteLocationPK: int, iFavoriteFK: int) -> str:
-        return f"UPDATE {FavoriteLocationTable.NAME} SET iFavoriteFK={iFavoriteFK} WHERE iPK={iFavoriteLocationPK}"
+    def TO_UPDATE_QUERY(iFavoriteLocationPK: int, iFavoriteFK: int, iLocationFK: int) -> str:
+        return f"UPDATE {FavoriteLocationTable.NAME} SET iFavoriteFK={iFavoriteFK}, iLocationFK={iLocationFK} WHERE iPK={iFavoriteLocationPK}"
 
     @staticmethod
     def TO_DELETE_QUERY(iFavoriteLocationPK: int) -> str:
