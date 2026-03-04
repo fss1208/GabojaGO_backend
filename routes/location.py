@@ -76,17 +76,16 @@ def register_location(location_model: LocationModel, request: Request):
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, LocationTable.TO_SELECT_ID_QUERY(location_model))
-            if (result != 0):
-                connection.rollback()
+            if (result == 0):
+                result = DB.EXECUTE(cursor, LocationTable.TO_INSERT_QUERY(location_model))
+                if (result != 1):
+                    connection.rollback()
+                    msg = f"DB 등록 실패, result:{result}, {location_model.to_log()}"
+                    logger.error(LOG.TO_MESSAGE(request, request_user, "실패!", msg, dt))
+                    raise HTTPException(status_code=500, detail=msg)
+            else:
                 msg = f"이미 등록된 장소, {location_model.to_log()}"
-                logger.error(LOG.TO_MESSAGE(request, request_user, "실패!", msg, dt))
-                raise HTTPException(status_code=500, detail=msg)
-            result = DB.EXECUTE(cursor, LocationTable.TO_INSERT_QUERY(location_model))
-            if (result != 1):
-                connection.rollback()
-                msg = f"DB 등록 실패, {location_model.to_log()}"
-                logger.error(LOG.TO_MESSAGE(request, request_user, "실패!", msg, dt))
-                raise HTTPException(status_code=500, detail=msg)
+                logger.debug(LOG.TO_MESSAGE(request, request_user, "무시", msg))
             connection.commit()
     logger.info(LOG.TO_MESSAGE(request, request_user, "완료", f"{location_model.to_log()}", dt))
     return location_model

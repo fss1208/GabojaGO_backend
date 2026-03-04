@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request
 from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
+from database.location_table import LocationTable
 from database.schedule.schedule_location_view import ScheduleLocationView
 from database.schedule.schedule_location_table import ScheduleLocationTable
 from models.schedule_model import ScheduleLocationModel, ScheduleLocationListModel
@@ -20,10 +21,10 @@ logger = logging.getLogger(__name__)
 
 #################################################################################################################
 
-@router.post("/append", summary="장소 등록", response_model=ScheduleLocationModel)
+@router.post("/append", summary="일정에 장소 추가", response_model=ScheduleLocationModel)
 def append_location(schedule_location_model: ScheduleLocationModel, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
     """
-    사용자가 요청하는 장소를 일정에 등록
+    일정에 사용자가 요청하는 장소 추가
     - **ScheduleLocationModel.iSchedulePK: int** 필수 입력
     - **ScheduleLocationModel.iLocationPK: int** 필수 입력
     - **ScheduleLocationModel.dtSchedule: datetime** 필수 입력
@@ -34,6 +35,16 @@ def append_location(schedule_location_model: ScheduleLocationModel, request: Req
     logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "요청", schedule_location_model.to_log()))
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
+            result = DB.EXECUTE(cursor, LocationTable.TO_SELECT_MODEL_QUERY(schedule_location_model.iLocationPK))
+            if (result != 1):
+                # 수동으로 장소를 추가하는 경우 처리 순서 (frontend)
+                # 1. location/search/keyword
+                # 2. location/register
+                # 3. schedule/location/append
+                # 4. schedule/location/list
+                msg = f"장소 정보 없음, iLocationFK:{schedule_location_model.iLocationFK}, {schedule_location_model.to_log()}"
+                logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
+                raise HTTPException(status_code=500, detail=msg)
             result = DB.EXECUTE(cursor, ScheduleLocationTable.TO_INSERT_QUERY(schedule_location_model))
             if (result != 1):
                 connection.rollback()
@@ -45,10 +56,10 @@ def append_location(schedule_location_model: ScheduleLocationModel, request: Req
     logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "완료", schedule_location_model.to_log(), dt))
     return schedule_location_model
 
-@router.post("/modify", summary="장소의 일시 및 메모 수정", response_model=ScheduleLocationModel)
+@router.post("/modify", summary="일정에 등록된 장소 정보 수정", response_model=ScheduleLocationModel)
 def modify_location(schedule_location_model: ScheduleLocationModel, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
     """
-    사용자가 요청하는 일정에 등록된 장소의 일시 및 메모 수정
+    일정에 등록된 장소 정보 수정 (일시, 메모)
     - **ScheduleLocationModel.iPK: int** 필수 입력
     - **ScheduleLocationModel.dtSchedule: datetime** 수정 항목
     - **ScheduleLocationModel.strMemo: str** 수정 항목
@@ -68,10 +79,10 @@ def modify_location(schedule_location_model: ScheduleLocationModel, request: Req
     logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "완료", schedule_location_model.to_log(), dt))
     return schedule_location_model
 
-@router.post("/remove", summary="장소 삭제", response_model=dict)
+@router.post("/remove", summary="일정에 등록된 장소 삭제", response_model=dict)
 def remove_location(iScheduleLocationPK: int, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
     """
-    사용자가 요청하는 일정에 등록된 장소 삭제
+    일정에 등록된 장소 삭제
     - **iScheduleLocationPK: int** 필수 입력
     """
     dt = datetime.now()
