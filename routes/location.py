@@ -26,18 +26,22 @@ def search_keyword_kakaomap(search_param: KakaoMapSearchRequestModel, request: R
     """
     사용자가 요청하는 키워드에 해당하는 장소를 찾아 반환 (최대 15개)
     - **query**:str 필수 입력
+    - **category_group_code**:str 선택 입력
     """
     dt = datetime.now()
     request_user = LOG.TO_REQUEST_USER(request)
-    logger.info(LOG.TO_MESSAGE(request, request_user, "요청"))
+    logger.info(LOG.TO_MESSAGE(request, request_user, "요청", search_param.query))
     location_model_list = KAKAO_MAP.SEARCH_KEYWORD(search_param)
-    logger.info(LOG.TO_MESSAGE(request, request_user, "완료"))
+    logger.info(LOG.TO_MESSAGE(request, request_user, "완료", search_param.query, dt))
     return LocationListModel(location_list=location_model_list)
 
 @router.post("/request", summary="장소 정보 요청", response_model=LocationListModel)
 def request_location(request_model: LocationRequestListModel, request: Request):
     """
     AI가 생성한 일정에 포함된 장소명으로 장소 정보를 검색하여 반환
+    **request_list**:list[LocationRequestModel] 필수 입력
+    - **LocationRequestModel.place_name**:str 필수 입력
+    - **LocationRequestModel.category_group_code**:str 선택 입력
     """
     dt = datetime.now()
     request_user = LOG.TO_REQUEST_USER(request)
@@ -52,15 +56,16 @@ def request_location(request_model: LocationRequestListModel, request: Request):
         for location_model in location_model_list:
             response_model_list.append(location_model)
             break
+    new_location_count = 0
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
             for location_model in response_model_list:
-                logger.debug(f"등록 대상 ({location_model.to_log()})")
-                result = DB.EXECUTE(cursor, LocationTable.TO_SELECT_ID_QUERY(location_model))
+                result = DB.EXECUTE(cursor, LocationTable.TO_SELECT_MODEL_QUERY(location_model.iPK))
                 if (result == 0):
                     result = DB.EXECUTE(cursor, LocationTable.TO_INSERT_QUERY(location_model))
+                    new_location_count += 1
             connection.commit()
-    logger.info(LOG.TO_MESSAGE(request, request_user, "완료", f"{len(response_model_list)}건"))
+    logger.info(LOG.TO_MESSAGE(request, request_user, "완료", f"전체 {len(response_model_list)}건 중에서 {new_location_count}건 신규 등록"))
     return LocationListModel(location_list=response_model_list)
 
 #################################################################################################################
@@ -75,7 +80,7 @@ def register_location(location_model: LocationModel, request: Request):
     logger.info(LOG.TO_MESSAGE(request, request_user, "요청", location_model.to_log()))
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
-            result = DB.EXECUTE(cursor, LocationTable.TO_SELECT_ID_QUERY(location_model))
+            result = DB.EXECUTE(cursor, LocationTable.TO_SELECT_MODEL_QUERY(location_model.iPK))
             if (result == 0):
                 result = DB.EXECUTE(cursor, LocationTable.TO_INSERT_QUERY(location_model))
                 if (result != 1):

@@ -5,9 +5,7 @@ import logging
 class LocationTable(BaseTable):
 
     NAME = "location"
-
-    def to_models(self) -> list[LocationModel]:
-        return [self.TO_MODEL(row) for row in self.rows_tuple]
+    MODEL_COLUMNS = "iPK,strName,strGroupCode,strGroupName,strGroupDetail,strAddress,strPhone,strLink,chCategory,ST_X(ptLongLat),ST_Y(ptLongLat)"
 
     @staticmethod
     def TO_MODEL(row: tuple) -> LocationModel:
@@ -24,6 +22,10 @@ class LocationTable(BaseTable):
             ptLongitude=str(row[9]),
             ptLatitude=str(row[10])
         )
+    
+    @staticmethod
+    def TO_MODEL_LIST(rows_tuple: tuple) -> list[LocationModel]:
+        return [LocationTable.TO_MODEL(row) for row in rows_tuple]
 
     @staticmethod
     def TO_CREATE_QUERY() -> str:
@@ -45,11 +47,7 @@ class LocationTable(BaseTable):
 
     @staticmethod
     def TO_SELECT_MODEL_QUERY(iLocationPK: int) -> str:
-        return f"SELECT iPK,strName,strGroupCode,strGroupName,strGroupDetail,strAddress,strPhone,strLink,chCategory,ST_X(ptLongLat),ST_Y(ptLongLat) FROM {LocationTable.NAME} WHERE iPK={iLocationPK}"
-
-    @staticmethod
-    def TO_SELECT_ID_QUERY(lm: LocationModel) -> str:
-        return f"SELECT iPK,strName FROM {LocationTable.NAME} WHERE iPK={lm.iPK}"
+        return f"SELECT {LocationTable.MODEL_COLUMNS} FROM {LocationTable.NAME} WHERE iPK={iLocationPK}"
 
     @staticmethod
     def TO_INSERT_QUERY(lm: LocationModel) -> str:
