@@ -77,11 +77,13 @@ def register_location(location_model: LocationModel, request: Request):
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, LocationTable.TO_SELECT_ID_QUERY(location_model))
             if (result != 0):
+                connection.rollback()
                 msg = f"이미 등록된 장소, {location_model.to_log()}"
                 logger.error(LOG.TO_MESSAGE(request, request_user, "실패!", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
             result = DB.EXECUTE(cursor, LocationTable.TO_INSERT_QUERY(location_model))
             if (result != 1):
+                connection.rollback()
                 msg = f"DB 등록 실패, {location_model.to_log()}"
                 logger.error(LOG.TO_MESSAGE(request, request_user, "실패!", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
@@ -103,6 +105,7 @@ def unregister_location(iLocationPK: int, request: Request):
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, LocationTable.TO_DELETE_QUERY(iLocationPK))
             if (result == 0):
+                connection.rollback()
                 msg = f"{text_log} 실패! (등록되지 않은 장소, {request_log})"
                 logger.error(msg)
                 raise HTTPException(status_code=500, detail=msg)

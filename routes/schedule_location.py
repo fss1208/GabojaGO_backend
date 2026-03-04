@@ -36,6 +36,7 @@ def append_location(schedule_location_model: ScheduleLocationModel, request: Req
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, ScheduleLocationTable.TO_INSERT_QUERY(schedule_location_model))
             if (result != 1):
+                connection.rollback()
                 msg = f"DB 등록 실패, {schedule_location_model.to_log()}"
                 logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
@@ -59,6 +60,7 @@ def modify_location(schedule_location_model: ScheduleLocationModel, request: Req
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, ScheduleLocationTable.TO_UPDATE_QUERY(schedule_location_model))
             if (result != 1):
+                connection.rollback()
                 msg = f"DB 수정 실패, {schedule_location_model.to_log()}"
                 logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
@@ -80,6 +82,7 @@ def remove_location(iScheduleLocationPK: int, request: Request, auth: HTTPAuthor
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, ScheduleLocationTable.TO_DELETE_QUERY(iScheduleLocationPK))
             if (result != 1):
+                connection.rollback()
                 msg = f"DB 삭제 실패, {request_log}"
                 logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)

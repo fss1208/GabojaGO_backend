@@ -44,6 +44,7 @@ def append_schedule(schedule_model: ScheduleModel, request: Request, auth: HTTPA
             schedule_model.iUserFK = login_user.iPK
             result = DB.EXECUTE(cursor, ScheduleTable.TO_INSERT_QUERY(schedule_model))
             if (result != 1):
+                connection.rollback()
                 msg = f"DB 등록 실패, {schedule_model.to_log()}"
                 logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
@@ -77,6 +78,7 @@ def modify_schedule(schedule_model: ScheduleModel, request: Request, auth: HTTPA
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, ScheduleTable.TO_UPDATE_QUERY(schedule_model))
             if (result != 1):
+                connection.rollback()
                 msg = f"DB 수정 실패, {schedule_model.to_log()}"
                 logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
@@ -98,6 +100,7 @@ def remove_schedule(iSchedulePK: int, request: Request, auth: HTTPAuthorizationC
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, ScheduleTable.TO_DELETE_QUERY(iSchedulePK))
             if (result != 1):
+                connection.rollback()
                 msg = f"DB 삭제 실패, {request_log}"
                 logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)

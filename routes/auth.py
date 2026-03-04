@@ -38,13 +38,11 @@ def register(user_model: UserModel, request: Request):
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, UserTable.TO_SELECT_MODEL_QUERY(user_model.strUserID))
             if (result != 0):
-                connection.rollback()
                 msg = f"사용자 ID 중복, id={user_model.strUserID}, result={result}"
                 logger.error(LOG.TO_MESSAGE(request, request_user, "실패!", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
             #
             if (user_model.check_validation() == False):
-                connection.rollback()
                 msg = f"유효하지 않은 데이터, {user_model}"
                 logger.error(LOG.TO_MESSAGE(request, request_user, "실패!", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
@@ -99,7 +97,7 @@ def login(request_model: LoginRequestModel, request: Request):
     return response_model
 
 @router.get("/user/search", summary="사용자 찾기", response_model=UserListModel)
-def search_by_id(strUserName: str, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
+def search_user(strUserName: str, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
     """
     사용자 이름으로 사용자 찾기
     """

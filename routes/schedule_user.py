@@ -35,11 +35,13 @@ def append_schedule_user(schedule_user_model: ScheduleUserModel, request: Reques
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, ScheduleUserTable.TO_SELECT_DUPLICATED_USER_QUERY(schedule_user_model))
             if (result != 0):
+                connection.rollback()
                 msg = f"이미 등록된 사용자, {schedule_user_model.to_log()}"
                 logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "에러", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
             result = DB.EXECUTE(cursor, ScheduleUserTable.TO_INSERT_QUERY(schedule_user_model))
             if (result != 1):
+                connection.rollback()
                 msg = f"DB 등록 실패, {schedule_user_model.to_log()}"
                 logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "에러", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
@@ -62,6 +64,7 @@ def remove_schedule_user(iScheduleUserPK: int, request: Request, auth: HTTPAutho
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, ScheduleUserTable.TO_DELETE_QUERY(iScheduleUserPK))
             if (result != 1):
+                connection.rollback()
                 msg = f"DB 삭제 실패, {request_log}"
                 logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "에러", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)

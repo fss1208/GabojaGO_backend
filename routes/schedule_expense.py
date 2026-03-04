@@ -37,6 +37,7 @@ def append_expense(schedule_expense_model: ScheduleExpenseModel, request: Reques
             schedule_expense_model.iUserFK = login_user.iPK
             result = DB.EXECUTE(cursor, ScheduleExpenseTable.TO_INSERT_QUERY(schedule_expense_model))
             if (result != 1):
+                connection.rollback()
                 msg = f"DB 등록 실패, {schedule_expense_model.to_log()}"
                 logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
@@ -62,6 +63,7 @@ def modify_expense(schedule_expense_model: ScheduleExpenseModel, request: Reques
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, ScheduleExpenseTable.TO_UPDATE_QUERY(schedule_expense_model))
             if (result != 1):
+                connection.rollback()
                 msg = f"DB 수정 실패, {schedule_expense_model.to_log()}"
                 logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
@@ -83,6 +85,7 @@ def remove_expense(iScheduleExpensePK: int, request: Request, auth: HTTPAuthoriz
         with connection.cursor() as cursor:
             result = DB.EXECUTE(cursor, ScheduleExpenseTable.TO_DELETE_QUERY(iScheduleExpensePK))
             if (result != 1):
+                connection.rollback()
                 msg = f"DB 삭제 실패, {request_log}"
                 logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
