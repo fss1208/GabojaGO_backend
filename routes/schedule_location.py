@@ -35,7 +35,7 @@ def append_location(schedule_location_model: ScheduleLocationModel, request: Req
     logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "요청", schedule_location_model.to_log()))
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
-            result = DB.EXECUTE(cursor, LocationTable.TO_SELECT_MODEL_QUERY(schedule_location_model.iLocationPK))
+            result = DB.EXECUTE(cursor, LocationTable.TO_SELECT_MODEL_QUERY(schedule_location_model.iLocationFK))
             if (result != 1):
                 # 수동으로 장소를 추가하는 경우 처리 순서 (frontend)
                 # 1. location/search/keyword
