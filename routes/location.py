@@ -146,3 +146,28 @@ def list_top_location(request: Request, count: int, category_group_code: str = N
                 location_model_list.append(LocationTable.TO_MODEL(row_tuple))
     logger.info(LOG.TO_MESSAGE(request, request_user, "완료", f"TOP {len(location_model_list)}", dt))
     return LocationListModel(location_list=location_model_list)
+
+@router.get("/get", summary="장소 정보 상세 조회", response_model=LocationModel)
+def get_location(request: Request, iLocationPK: int):
+    """
+    장소의 상세 정보를 반환
+    - **iLocationPK**:int **필수 입력** (iLocationPK > 0)
+    """
+    dt = datetime.now()
+    request_user = LOG.TO_REQUEST_USER(request)
+    logger.info(LOG.TO_MESSAGE(request, request_user, "요청", f"장소 상세 정보 조회: {iLocationPK}"))
+    if (iLocationPK <= 0):
+        msg = f"iLocationPK 값은 0보다 커야 합니다. (iLocationPK:{iLocationPK})"
+        logger.error(LOG.TO_MESSAGE(request, request_user, "실패!", msg, dt))
+        raise HTTPException(status_code=400, detail=msg)
+    with DB.CONNECT() as connection:
+        with connection.cursor() as cursor:
+            result = DB.EXECUTE(cursor, LocationTable.TO_SELECT_MODEL_QUERY(iLocationPK))
+            if (result == 0):
+                msg = f"시스템에 등록되지 않은 장소"
+                logger.error(LOG.TO_MESSAGE(request, request_user, "실패!", msg, dt))
+                raise HTTPException(status_code=400, detail=msg)
+            row_tuple = cursor.fetchone()
+            location_model = LocationTable.TO_MODEL(row_tuple)
+    logger.info(LOG.TO_MESSAGE(request, request_user, "완료", f"장소 상세 정보 조회: {location_model.to_log()}", dt))
+    return location_model
