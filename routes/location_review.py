@@ -96,18 +96,23 @@ def remove_location_review(iLocationReviewPK: int, request: Request, auth: HTTPA
     return {"iLocationReviewPK": iLocationReviewPK}
 
 @router.get("/list", summary="장소 리뷰 목록 조회", response_model=LocationReviewListModel)
-def list_location_review(iLocationPK: int, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
+def list_location_review(iLocationPK: int, iUserPK: int, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
     """
-    사용자가 요청하는 장소에 대한 리뷰 목록 조회
-    - **iLocationPK: int** 필수 입력
+    사용자가 요청하는 장소에 대한 리뷰 목록 조회 (iLocationPK=0, iUserPK=0 : 사용 불가)
+    - **iLocationPK: int** 필수 입력 (iLocationPK=0 : 모든 장소 조회, iLocationPK>0 : 특정 장소만 조회)
+    - **iUserPK: int** 필수 입력 (iUserPK=0 : 전체 사용자 조회, iUserPK>0 : 특정 사용자만 조회)
     """
     dt = datetime.now()
     login_user = AUTH_JWT.TO_USER_MODEL(auth)
-    request_log = f"iLocationPK:{iLocationPK}"
+    request_log = f"iLocationPK:{iLocationPK},iUserPK:{iUserPK}"
     logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "요청", request_log))
+    if ((iLocationPK == 0) and (iUserPK == 0)):
+        msg = f"iLocationPK와 iUserPK 모두 0일 수는 없습니다."
+        logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
+        raise HTTPException(status_code=500, detail=msg)
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
-            result = DB.EXECUTE(cursor, LocationReviewTable.TO_SELECT_LIST_QUERY(iLocationPK))
+            result = DB.EXECUTE(cursor, LocationReviewTable.TO_SELECT_LIST_QUERY(iLocationPK, iUserPK))
             rows_tuple = cursor.fetchall()
             if (result != len(rows_tuple)):
                 msg = f"DB 조회 실패, {request_log} (데이터 개수 불일치, {request_log}, 요청:{result}, 실제:{len(rows_tuple)})"

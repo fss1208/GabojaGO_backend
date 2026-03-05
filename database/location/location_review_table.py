@@ -45,8 +45,17 @@ class LocationReviewTable(BaseTable):
         return f"SELECT * FROM {LocationReviewTable.NAME} WHERE iPK={iLocationReviewPK}"
 
     @staticmethod
-    def TO_SELECT_LIST_QUERY(iLocationPK: int) -> str:
-        return f"SELECT * FROM {LocationReviewTable.NAME} WHERE iLocationFK={iLocationPK}"
+    def TO_SELECT_LIST_QUERY(iLocationFK: int, iUserFK: int, nLimitCount: int = 10) -> str:
+        strUser = "" if (iUserFK == 0) else f"iUserFK={iUserFK}"
+        strLocation = "" if (iLocationFK == 0) else f"iLocationFK={iLocationFK}"
+        if ((iLocationFK != 0) and (iUserFK != 0)):
+            return f"SELECT * FROM {LocationReviewTable.NAME} WHERE {strLocation} AND {strUser} ORDER BY dtCreate DESC"
+        elif ((iLocationFK != 0) and (iUserFK == 0)):
+            return f"SELECT * FROM {LocationReviewTable.NAME} WHERE {strLocation} ORDER BY dtCreate DESC"
+        elif ((iLocationFK == 0) and (iUserFK != 0)):
+            return f"SELECT * FROM {LocationReviewTable.NAME} WHERE {strUser} ORDER BY dtCreate DESC"
+        # TODO: iLocationFK별 가장 평균 평점이 높은 순으로 정렬
+        return f"SELECT iLocationFK, AVG(nScore) as nAvgScore FROM {LocationReviewTable.NAME} GROUP BY iLocationFK ORDER BY nAvgScore DESC LIMIT {nLimitCount}"
 
     @staticmethod
     def TO_INSERT_QUERY(lrm: LocationReviewModel) -> str:
