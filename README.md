@@ -13,6 +13,7 @@ pip install langchain
 pip install langchain-openai
 pip install pydantic
 pip install Pillow # WebP 변환 라이브러리
+pip install folium # 지도 생성 라이브러리
 pip install boto3 # CloudFlare
 ```
 
@@ -27,4 +28,10 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 ### Python Vitual Environment (venv)
 ```bash
 source ~/SeSAC/GabojaGO_backend/venv/bin/activate
+```
+
+### Python Vitual Environment (anaconda)
+```bash
+C:/ProgramData/anaconda3/Scripts/activate
+conda activate base
 ```
