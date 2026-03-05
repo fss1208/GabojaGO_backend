@@ -5,6 +5,8 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from database.location_table import LocationTable
 from models.location_model import LocationModel, LocationListModel
 from models.location_model import KakaoMapSearchRequestModel, LocationRequestListModel
+from database.location.location_review_view import LocationReviewView
+
 from library.MAP import KAKAO_MAP
 from library.JWT import AUTH_JWT
 from library.LOG import LOG
@@ -116,3 +118,31 @@ def unregister_location(iLocationPK: int, request: Request):
             connection.commit()
     logger.info(LOG.TO_MESSAGE(request, request_user, "완료", request_log, dt))
     return {"iLocationPK": iLocationPK}
+
+#################################################################################################################
+
+@router.get("/top", summary="인기 장소 목록 조회", response_model=LocationListModel)
+def list_top_location(request: Request, count: int, category_group_code: str = None):
+    """
+    리뷰의 평점이 높은 순서대로 인기 장소를 요청한 개수만큼 반환
+    - **count**:int **필수 입력** (count > 0)
+    - **category_group_code**:str 선택 입력 (값을 설정하지 않으면 전체)
+    """
+    dt = datetime.now()
+    request_user = LOG.TO_REQUEST_USER(request)
+    logger.info(LOG.TO_MESSAGE(request, request_user, "요청", f"TOP {count}:{category_group_code}" if category_group_code else f"TOP {count}"))
+    if (count <= 0):
+        msg = f"count 값은 0보다 커야 합니다. (count:{count})"
+        logger.error(LOG.TO_MESSAGE(request, request_user, "실패!", msg, dt))
+        raise HTTPException(status_code=400, detail=msg)
+    location_model_list = []
+    with DB.CONNECT() as connection:
+        with connection.cursor() as cursor:
+            result = DB.EXECUTE(cursor, LocationReviewView.TO_SELECT_TOP_LIST_QUERY(count, category_group_code))
+            rows_tuple = cursor.fetchall()
+            for row_tuple in rows_tuple:
+                result = DB.EXECUTE(cursor, LocationTable.TO_SELECT_MODEL_QUERY(row_tuple[0]))
+                row_tuple = cursor.fetchone()
+                location_model_list.append(LocationTable.TO_MODEL(row_tuple))
+    logger.info(LOG.TO_MESSAGE(request, request_user, "완료", f"TOP {len(location_model_list)}", dt))
+    return LocationListModel(location_list=location_model_list)

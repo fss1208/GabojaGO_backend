@@ -50,6 +50,15 @@ class LocationReviewView(BaseTable):
             WHERE lrt.iLocationFK = {iLocationPK}
             ORDER BY lrt.nScore DESC, lrt.dtCreate DESC"""
 
+    @staticmethod
+    def TO_SELECT_TOP_LIST_QUERY(nLimitCount: int = 10, category_group_code: str = None) -> str:
+        return f"""
+            SELECT lrt.iLocationFK,AVG(lrt.nScore) as nAvgScore,lt.iPK,lt.strName,lt.strGroupCode
+            FROM {LocationReviewTable.NAME} AS lrt JOIN {LocationTable.NAME} AS lt ON lrt.iLocationFK = lt.iPK
+            {f"WHERE lt.strGroupCode='{category_group_code}'" if (category_group_code) else ""}
+            GROUP BY lrt.iLocationFK
+            ORDER BY nAvgScore DESC LIMIT {nLimitCount}"""
+
 ####################################################################################################################################################
 
 if (__name__ == "__main__"):
