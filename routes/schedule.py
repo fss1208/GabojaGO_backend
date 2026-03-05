@@ -109,18 +109,19 @@ def remove_schedule(iSchedulePK: int, request: Request, auth: HTTPAuthorizationC
     return {"iSchedulePK": iSchedulePK}
 
 @router.get("/list", summary="일정 목록 조회", response_model=ScheduleListModel)
-def list_schedule(chStatus: str, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
+def list_schedule(chStatus: str, nFilter: int, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
     """
     여행 일정 목록 조회
     - **chStatus: str** 'A':예정, 'B':진행중, 'C':완료
+    - **nFilter: int** 1:내가 생성한 일정만, 2:내가 동행하는 일정만, 3:전체
     """
     dt = datetime.now()
     login_user = AUTH_JWT.TO_USER_MODEL(auth)
-    request_log = f"chStatus:{chStatus}"
+    request_log = f"chStatus:{chStatus}, nFilter:{nFilter}"
     logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "요청", request_log))
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
-            result = DB.EXECUTE(cursor, ScheduleTable.TO_SELECT_LIST_QUERY(login_user.iPK, chStatus))
+            result = DB.EXECUTE(cursor, ScheduleTable.TO_SELECT_LIST_QUERY(login_user.iPK, chStatus, nFilter))
             rows_tuple = cursor.fetchall()
             if (result != len(rows_tuple)):
                 msg = f"데이터 개수 불일치, 요청:{result}, 실제:{len(rows_tuple)}"
