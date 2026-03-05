@@ -12,6 +12,8 @@ pip install openai
 pip install langchain
 pip install langchain-openai
 pip install pydantic
+pip install Pillow # WebP 변환 라이브러리
+pip install boto3 # CloudFlare
 ```
 
 ## 실행
