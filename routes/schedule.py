@@ -4,6 +4,8 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from database.schedule_table import ScheduleTable
 from models.schedule_model import ScheduleModel, ScheduleListModel
+from models.auth_model import UserModel
+
 from library.JWT import AUTH_JWT
 from library.LOG import LOG
 from library.DB import DB
@@ -16,6 +18,15 @@ import os
 router = APIRouter()
 security = HTTPBearer()
 logger = logging.getLogger(__name__)
+
+def check_schedule_create_user(cursor, iScheduleFK: int, login_user_model: UserModel) -> str | None:
+    """
+    일정을 생성한 사용자인지 확인
+    - OK: None
+    - NG: Error Message
+    """
+    result = DB.EXECUTE(cursor, ScheduleTable.TO_SELECT_CREATE_USER_QUERY(iScheduleFK, login_user_model.iPK))
+    return f"일정을 생성한 사용자가 아닙니다!, iScheduleFK:{iScheduleFK}, login_user:{login_user_model.to_log()}" if (result == 0) else None
 
 #################################################################################################################
 
@@ -76,6 +87,10 @@ def modify_schedule(schedule_model: ScheduleModel, request: Request, auth: HTTPA
     logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "요청", schedule_model.to_log()))
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
+            error_msg = check_schedule_create_user(cursor, schedule_model.iPK, login_user)
+            if (error_msg != None):
+                logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", error_msg, dt))
+                raise HTTPException(status_code=500, detail=error_msg)
             result = DB.EXECUTE(cursor, ScheduleTable.TO_UPDATE_QUERY(schedule_model))
             if (result != 1):
                 connection.rollback()
@@ -98,6 +113,10 @@ def remove_schedule(iSchedulePK: int, request: Request, auth: HTTPAuthorizationC
     logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "요청", request_log))
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
+            error_msg = check_schedule_create_user(cursor, iSchedulePK, login_user)
+            if (error_msg != None):
+                logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", error_msg, dt))
+                raise HTTPException(status_code=500, detail=error_msg)
             result = DB.EXECUTE(cursor, ScheduleTable.TO_DELETE_QUERY(iSchedulePK))
             if (result != 1):
                 connection.rollback()
