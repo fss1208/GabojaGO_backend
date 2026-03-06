@@ -15,6 +15,7 @@ pip install pydantic
 pip install Pillow # WebP 변환 라이브러리
 pip install folium # 지도 생성 라이브러리
 pip install boto3 # CloudFlare
+pip install python-multipart # 파일 업로드
 ```
 
 ## 실행

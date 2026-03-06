@@ -38,8 +38,8 @@ class CloudFlare:
         except Exception as e:
             logger.error(f"DOWNLOAD FAILED!: {e}")
     #
-    def get_file_list(self) -> list[str]:
-        response = self.s3.list_objects_v2(Bucket=self.bucket_name)
+    def get_file_list(self, path: str="") -> list[str]:
+        response = self.s3.list_objects_v2(Bucket=self.bucket_name, Prefix=path)
         file_list = []
         if 'Contents' in response:
             logger.info(f"--- {self.bucket_name} 버킷의 파일 목록 ---")
@@ -50,12 +50,12 @@ class CloudFlare:
             logger.debug("버킷이 비어있습니다.")
         return file_list
     #
-    def get_folder_list(self, prefix: str="") -> list[str]:
+    def get_folder_list(self, path: str="") -> list[str]:
         """
         prefix: 검색을 시작할 경로 (예: "photos/" 또는 루트의 경우 "")
         """
         # Delimiter를 '/'로 설정하면 공통된 경로를 'CommonPrefixes'로 그룹화해줍니다.
-        response = self.s3.list_objects_v2(Bucket=self.bucket_name, Prefix=prefix, Delimiter='/')
+        response = self.s3.list_objects_v2(Bucket=self.bucket_name, Prefix=path, Delimiter='/')
         folder_list = []
         # CommonPrefixes 안에 폴더 형태의 경로들이 담깁니다.
         if 'CommonPrefixes' in response:
@@ -92,6 +92,15 @@ class CloudFlare:
             logger.info(f"DELETE: {self.bucket_name}/{folder_path} 내 {len(delete_file_list)}개의 파일 삭제")
         else:
             logger.info("삭제할 파일이 없습니다.")
+    #
+    def is_exist(self, remote_target: str) -> bool:
+        """파일 존재 여부 확인"""
+        try:
+            self.s3.head_object(Bucket=self.bucket_name, Key=remote_target)
+            return True
+        except Exception as e:
+            logger.error(f"FILE NOT FOUND!: {e}")
+            return False
 
 if __name__ == "__main__":
     import os

@@ -1,11 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from fastapi import Request
 
 class LOG:
 
     @staticmethod
     def TO_ESTIMATED_TIME(dt: datetime) -> str:
-        return f"{(dt - datetime.now()).total_seconds() / 1000:.2f} ms"
+        return f"{(datetime.now() - dt).microseconds / 1000:.2f} ms"
 
     @staticmethod
     def TO_ROUTE_TEXT(request: Request) -> str:

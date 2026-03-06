@@ -40,6 +40,10 @@ class ImageTable(BaseTable):
         return f"SELECT {ImageTable.MODEL_COLUMNS} FROM {ImageTable.NAME} WHERE iPK={iImagePK}"
 
     @staticmethod
+    def TO_SELECT_FILE_QUERY(strFile: str) -> str:
+        return f"SELECT strFile FROM {ImageTable.NAME} WHERE strFile='{strFile}'"
+
+    @staticmethod
     def TO_INSERT_QUERY(im: ImageModel) -> str:
         return f"INSERT INTO {ImageTable.NAME} (iUserFK,iLocationPK,strFile,dtImage,ptLongLat) " + \
                f"VALUES ({im.iUserFK},{im.iLocationPK},'{im.strFile}','{im.dtImage}',{DB.TO_POINT(im.ptLongitude,im.ptLatitude)})"
