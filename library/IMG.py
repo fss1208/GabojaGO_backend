@@ -49,7 +49,7 @@ def get_exif_location(image_path):
     """
     try:
         image = Image.open(image_path)
-        exif_data = image._getexif()
+        exif_data = image.getexif()
         if not exif_data:
             return None, "EXIF 데이터가 없습니다."
 
