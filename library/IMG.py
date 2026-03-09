@@ -3,7 +3,7 @@ import folium, webbrowser
 
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
-from PIL.TiffImagePlugin import IFDRational
+import exifread
 
 import logging
 logger = logging.getLogger(__name__)
@@ -24,63 +24,6 @@ def debug_gps(image_path):
         if TAGS.get(tag) == "GPSInfo":
             for t, v in value.items():
                 print(f"  {GPSTAGS.get(t, t)}({t}): {repr(v)}")
-
-def _get_decimal_from_dms_(dms, ref):
-    def to_float(val):
-        # IFDRational 명시적 처리 (float() 변환 시 NaN 가능성 차단)
-        if isinstance(val, IFDRational):
-            if val.denominator == 0:
-                return 0.0
-            return float(val.numerator) / float(val.denominator)
-        # (분자, 분모) 튜플 처리
-        elif isinstance(val, tuple):
-            return float(val[0]) / float(val[1]) if val[1] != 0 else 0.0
-        return float(val)
-    degrees = to_float(dms[0])
-    minutes = to_float(dms[1]) / 60.0
-    seconds = to_float(dms[2]) / 3600.0
-    if ref in ['S', 'W']:
-        return -(degrees + minutes + seconds)
-    return degrees + minutes + seconds
-
-# def get_exif_location(image_path):
-#     """
-#     이미지의 파일에서 GPS 좌표 및 촬영시간을 추출하는 함수
-#     """
-#     try:
-#         image = Image.open(image_path)
-#         exif_data = image.getexif()
-#         if not exif_data:
-#             return None, "EXIF 데이터가 없습니다."
-
-#         exif_info = {}
-#         gps_info = {}
-#         for tag, value in exif_data.items():
-#             tag_name = TAGS.get(tag, tag)
-#             exif_info[tag_name] = value
-#             if tag_name == "GPSInfo":
-#                 for t in value:
-#                     sub_tag = GPSTAGS.get(t, t)
-#                     gps_info[sub_tag] = value[t]
-
-#         # 시간 정보 추출
-#         shot_dt_str = exif_info.get("DateTimeOriginal") or exif_info.get("DateTime")
-#         shot_date_str = shot_dt_str[:10].replace(":", "-")
-#         shot_time_str = shot_dt_str[11:]
-#         shot_dt_str = f"{shot_date_str} {shot_time_str}"
-
-#         if "GPSLatitude" in gps_info and "GPSLongitude" in gps_info:
-#             x = _get_decimal_from_dms_(gps_info["GPSLongitude"], gps_info["GPSLongitudeRef"])
-#             y = _get_decimal_from_dms_(gps_info["GPSLatitude"], gps_info["GPSLatitudeRef"])
-#             if x is None or y is None:
-#                 return {"x": None, "y": None, "dt": shot_dt_str, "error": "GPS 변환 실패"}, ""
-#             return {"x": x, "y": y, "dt": shot_dt_str}, ""
-#         else:
-#             return {"x": None, "y": None, "dt": shot_dt_str, "error": "GPS 정보가 없습니다."}, ""
-#     except Exception as e:
-#         return None, str(e)
-
-import exifread
 
 def get_exif_location(image_path):
     try:
