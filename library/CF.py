@@ -28,7 +28,7 @@ class CloudFlare:
             self.s3.upload_file(local_file, self.bucket_name, remote_file)
             logger.info(f"UPLOAD: {local_file} > {self.bucket_name}/{remote_file}")
         except Exception as e:
-            logger.error(f"UPLOAD FAILED!: {e}")
+            logger.error(f"UPLOAD FAILED!: {local_file} > {remote_file} ({e})")
     #
     def download_file(self, remote_file: str, local_file: str):
         """파일 다운로드"""
