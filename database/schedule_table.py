@@ -4,7 +4,6 @@ import logging
 
 from library.DB import DB, BaseTable
 from models.schedule_model import ScheduleModel
-from database.schedule.schedule_user_table import ScheduleUserTable
 
 class ScheduleTable(BaseTable):
 
@@ -30,10 +29,6 @@ class ScheduleTable(BaseTable):
             chStatus=row[14],
             dtCreate=row[15]
         )
-
-    @staticmethod
-    def TO_MODEL_LIST(rows_tuple: tuple) -> list[ScheduleModel]:
-        return [ScheduleTable.TO_MODEL(row) for row in rows_tuple]
 
     @staticmethod
     def TO_CREATE_QUERY() -> str:
@@ -65,25 +60,6 @@ class ScheduleTable(BaseTable):
     @staticmethod
     def TO_SELECT_CREATE_USER_QUERY(iSchedulePK: int, iUserFK: int) -> str:
         return f"SELECT iUserFK FROM {ScheduleTable.NAME} WHERE iPK={iSchedulePK} AND iUserFK={iUserFK}"
-
-    @staticmethod
-    def TO_SELECT_LIST_QUERY(iUserFK: int, chStatus: str, nFilter: int) -> str:
-        strFilter = ""
-        if (nFilter == 1): # 내가 생성한 일정
-            strFilter = f"iUserFK={iUserFK}"
-        elif (nFilter == 2): # 내가 동행한 일정
-            strFilter = f"iPK IN (SELECT iScheduleFK FROM {ScheduleUserTable.NAME} WHERE iUserFK IN ({iUserFK}))"
-        else: # (nFilter == 3) 내가 참여한 일정
-            strFilter = f"(iUserFK={iUserFK} OR iPK IN (SELECT iScheduleFK FROM {ScheduleUserTable.NAME} WHERE iUserFK IN ({iUserFK})))"
-        #
-        if (chStatus == 'A'):
-            return f"SELECT * FROM {ScheduleTable.NAME} WHERE {strFilter} AND (dtDate1 >= CURRENT_DATE() OR dtDate2 >= CURRENT_DATE())"
-        elif (chStatus == 'B'):
-            return f"SELECT * FROM {ScheduleTable.NAME} WHERE {strFilter} AND (dtDate1 <= CURRENT_DATE() AND dtDate2 >= CURRENT_DATE())"
-        elif (chStatus == 'C'):
-            return f"SELECT * FROM {ScheduleTable.NAME} WHERE {strFilter} AND dtDate2 < CURRENT_DATE()"
-        else:
-            return f"SELECT * FROM {ScheduleTable.NAME} WHERE {strFilter}"
     
     @staticmethod
     def TO_INSERT_QUERY(sm: ScheduleModel) -> str:

@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request
 from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
+from database.schedule_view import ScheduleView
 from database.schedule_table import ScheduleTable
 from models.schedule_model import ScheduleModel, ScheduleListModel
 from models.auth_model import UserModel
@@ -140,12 +141,12 @@ def list_schedule(chStatus: str, nFilter: int, request: Request, auth: HTTPAutho
     logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "요청", request_log))
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
-            result = DB.EXECUTE(cursor, ScheduleTable.TO_SELECT_LIST_QUERY(login_user.iPK, chStatus, nFilter))
+            result = DB.EXECUTE(cursor, ScheduleView.TO_SELECT_LIST_QUERY(login_user.iPK, nFilter, chStatus))
             rows_tuple = cursor.fetchall()
             if (result != len(rows_tuple)):
                 msg = f"데이터 개수 불일치, 요청:{result}, 실제:{len(rows_tuple)}"
                 logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
-            schedule_list_model = ScheduleListModel(schedule_list=ScheduleTable.TO_MODEL_LIST(rows_tuple))
+            schedule_list_model = ScheduleListModel(schedule_list=ScheduleView.TO_MODEL_LIST(rows_tuple))
     logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "완료", f"{request_log}, {result}건", dt))
     return schedule_list_model

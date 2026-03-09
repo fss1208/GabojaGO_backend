@@ -4,6 +4,7 @@ from typing import Optional
 from datetime import datetime, date
 import logging
 
+from models.auth_model import UserModel
 from models.location_model import LocationModel
 from models.image_model import ImageModel
 
@@ -36,8 +37,11 @@ class ScheduleModel(BaseModel):
     def to_log(self) -> str:
         return f"{self.iPK}:{self.iUserFK}:{self.dtDate1}:{self.dtDate2}:{self.strWhere}"
 
+class ScheduleFrontModel(ScheduleModel):
+    user_model: UserModel = Field(..., description="사용자 정보")
+
 class ScheduleListModel(BaseModel):
-    schedule_list: list[ScheduleModel] = Field(..., description="일정 목록")
+    schedule_list: list[ScheduleFrontModel] = Field(..., description="일정 목록")
 
 ###############################################################################################################################################################
 
