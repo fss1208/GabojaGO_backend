@@ -61,10 +61,10 @@ async def append_schedule_image(request: Request, iSchedulePK: int, iLocationPK:
         shutil.copyfileobj(file.file, buffer)
     logger.info(f"업로드 완료 ({upload_file})")
     # 2. 업로드된 파일에서 데이터 추출 (위도, 경도, 촬영일시)
-    img_extract_dict = get_exif_location(upload_file)
-    img_date_str = img_extract_dict.get("dt").split(" ")[0] if img_extract_dict.get("dt") else None
+    img_extract_dict, error_msg = get_exif_location(upload_file)
+    img_date_str = img_extract_dict.get("dt").split(" ")[0] if bool(img_extract_dict) and bool(img_extract_dict.get("dt")) else None
     if (img_date_str == None):
-        msg = f"이미지 파일에서 촬영일시 추출 실패 ({img_extract_dict})"
+        msg = f"이미지 파일에서 촬영일시 추출 실패 ({error_msg})"
         logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
         raise HTTPException(status_code=500, detail=msg)
     logger.info(f"이미지 파일로부터 데이터 추출 완료 ({img_extract_dict})")
