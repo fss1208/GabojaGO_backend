@@ -22,21 +22,25 @@ class CloudFlare:
             config=Config(signature_version='s3v4')
         )
     #
-    def upload_file(self, local_file: str, remote_file: str):
+    def upload_file(self, local_file: str, remote_file: str) -> bool:
         """파일 업로드"""
         try:
             self.s3.upload_file(local_file, self.bucket_name, remote_file)
             logger.info(f"UPLOAD: {local_file} > {self.bucket_name}/{remote_file}")
+            return True
         except Exception as e:
             logger.error(f"UPLOAD FAILED!: {local_file} > {remote_file} ({e})")
+            return False
     #
-    def download_file(self, remote_file: str, local_file: str):
+    def download_file(self, remote_file: str, local_file: str) -> bool:
         """파일 다운로드"""
         try:
             self.s3.download_file(self.bucket_name, remote_file, local_file)
             logger.info(f"DOWNLOAD: {self.bucket_name}/{remote_file} > {local_file}")
+            return True
         except Exception as e:
             logger.error(f"DOWNLOAD FAILED!: {e}")
+            return False
     #
     def get_file_list(self, path: str="") -> list[str]:
         response = self.s3.list_objects_v2(Bucket=self.bucket_name, Prefix=path)

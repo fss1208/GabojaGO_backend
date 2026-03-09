@@ -73,7 +73,10 @@ async def append_schedule_image(request: Request, iSchedulePK: int, iLocationPK:
     cf_upload_path = f"{img_date_str.replace("-", "/")}/{login_user.strUserID}"
     cf_upload_file = webp_file.replace(upload_path, cf_upload_path)
     cf = CreateCloudFlare()
-    cf.upload_file(webp_file, cf_upload_file)
+    if not cf.upload_file(webp_file, cf_upload_file):
+        msg = f"파일서버에 업로드 실패 ({webp_file} > {cf_upload_file})"
+        logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "실패!", msg, dt))
+        raise HTTPException(status_code=500, detail=msg)
     logger.info(f"파일서버에 업로드 완료 ({cf_upload_file})")
     # 5. database data 추가 (ImageTable, ScheduleImageTable)
     with DB.CONNECT() as connection:
