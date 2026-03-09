@@ -19,21 +19,17 @@ logger = logging.getLogger(__name__)
 
 def _get_decimal_from_dms_(dms, ref):
     try:
-        result = []
-        for value in dms:
-            # IFDRational 또는 (분자, 분모) 튜플 모두 처리
-            if isinstance(value, tuple):
-                numerator, denominator = value
-                result.append(float(numerator) / float(denominator) if denominator != 0 else 0.0)
-            else:
-                # IFDRational, float, int 등 바로 변환
-                result.append(float(value))
-        degrees, minutes, seconds = result
-        decimal = degrees + (minutes / 60.0) + (seconds / 3600.0)
-        # S(남위), W(서경)이면 음수
-        if ref in ("S", "W"):
-            decimal = -decimal
-        return decimal
+        # IFDRational(분모 0) 또는 튜플 (분자, 분모) 모두 안전하게 float 변환
+        def to_float(val):
+            if isinstance(val, tuple):
+                return float(val[0]) / float(val[1]) if val[1] != 0 else 0.0
+            return float(val)  # IFDRational, int, float 모두 처리
+        degrees = to_float(dms[0])
+        minutes = to_float(dms[1]) / 60.0
+        seconds = to_float(dms[2]) / 3600.0
+        if ref in ['S', 'W']:
+            return -(degrees + minutes + seconds)
+        return degrees + minutes + seconds
     except Exception as e:
         print(f"DMS 변환 오류: {e}, 입력값: {dms}, ref: {ref}")
         return None
