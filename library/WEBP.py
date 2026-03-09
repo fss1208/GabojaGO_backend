@@ -1,9 +1,11 @@
-from PIL import Image
+from PIL import Image, ImageOps
 import os
 
 def convert_to_webp(input_path, output_path, quality=80):
     try:
         with Image.open(input_path) as img:
+            # EXIF 회전 정보를 실제 픽셀에 적용 (회전 방지 핵심)
+            img = ImageOps.exif_transpose(img)
             # RGBA(투명도 포함) 모델 유지하며 변환 가능
             img.save(output_path, "WEBP", quality=quality)
             print(f"변환 완료: {output_path}")
