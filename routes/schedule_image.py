@@ -20,7 +20,7 @@ import os
 
 import shutil
 from fastapi import File, UploadFile
-from library.IMG import get_exif_location
+from library.IMG import get_exif_location, debug_gps
 from library.WEBP import convert_to_webp
 from library.CF import CloudFlare
 
@@ -61,6 +61,7 @@ async def append_schedule_image(request: Request, iSchedulePK: int, iLocationPK:
         shutil.copyfileobj(file.file, buffer)
     logger.info(f"업로드 완료 ({upload_file})")
     # 2. 업로드된 파일에서 데이터 추출 (위도, 경도, 촬영일시)
+    debug_gps(upload)
     img_extract_dict, error_msg = get_exif_location(upload_file)
     img_date_str = img_extract_dict.get("dt").split(" ")[0] if bool(img_extract_dict) and bool(img_extract_dict.get("dt")) else None
     if (img_date_str == None):
