@@ -47,9 +47,9 @@ def get_exif_location(image_path):
         if "GPSLatitude" in gps_info and "GPSLongitude" in gps_info:
             x = _get_decimal_from_dms_(gps_info["GPSLongitude"], gps_info["GPSLongitudeRef"])
             y = _get_decimal_from_dms_(gps_info["GPSLatitude"], gps_info["GPSLatitudeRef"])
-            return {"x": x, "y": y, "dt": shot_dt_str}
+            return {"x": x, "y": y, "dt": shot_dt_str}, ""
         else:
-            return {"x": None, "y": None, "dt": shot_dt_str, "error": "GPS 정보가 없습니다."}
+            return {"x": None, "y": None, "dt": shot_dt_str, "error": "GPS 정보가 없습니다."}, ""
     except Exception as e:
         return None, str(e)
 
