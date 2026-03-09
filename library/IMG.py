@@ -43,40 +43,81 @@ def _get_decimal_from_dms_(dms, ref):
         return -(degrees + minutes + seconds)
     return degrees + minutes + seconds
 
+# def get_exif_location(image_path):
+#     """
+#     이미지의 파일에서 GPS 좌표 및 촬영시간을 추출하는 함수
+#     """
+#     try:
+#         image = Image.open(image_path)
+#         exif_data = image.getexif()
+#         if not exif_data:
+#             return None, "EXIF 데이터가 없습니다."
+
+#         exif_info = {}
+#         gps_info = {}
+#         for tag, value in exif_data.items():
+#             tag_name = TAGS.get(tag, tag)
+#             exif_info[tag_name] = value
+#             if tag_name == "GPSInfo":
+#                 for t in value:
+#                     sub_tag = GPSTAGS.get(t, t)
+#                     gps_info[sub_tag] = value[t]
+
+#         # 시간 정보 추출
+#         shot_dt_str = exif_info.get("DateTimeOriginal") or exif_info.get("DateTime")
+#         shot_date_str = shot_dt_str[:10].replace(":", "-")
+#         shot_time_str = shot_dt_str[11:]
+#         shot_dt_str = f"{shot_date_str} {shot_time_str}"
+
+#         if "GPSLatitude" in gps_info and "GPSLongitude" in gps_info:
+#             x = _get_decimal_from_dms_(gps_info["GPSLongitude"], gps_info["GPSLongitudeRef"])
+#             y = _get_decimal_from_dms_(gps_info["GPSLatitude"], gps_info["GPSLatitudeRef"])
+#             if x is None or y is None:
+#                 return {"x": None, "y": None, "dt": shot_dt_str, "error": "GPS 변환 실패"}, ""
+#             return {"x": x, "y": y, "dt": shot_dt_str}, ""
+#         else:
+#             return {"x": None, "y": None, "dt": shot_dt_str, "error": "GPS 정보가 없습니다."}, ""
+#     except Exception as e:
+#         return None, str(e)
+
+import exifread
+
 def get_exif_location(image_path):
-    """
-    이미지의 파일에서 GPS 좌표 및 촬영시간을 추출하는 함수
-    """
     try:
-        image = Image.open(image_path)
-        exif_data = image.getexif()
-        if not exif_data:
+        with open(image_path, 'rb') as f:
+            tags = exifread.process_file(f, details=False)
+
+        if not tags:
             return None, "EXIF 데이터가 없습니다."
 
-        exif_info = {}
-        gps_info = {}
-        for tag, value in exif_data.items():
-            tag_name = TAGS.get(tag, tag)
-            exif_info[tag_name] = value
-            if tag_name == "GPSInfo":
-                for t in value:
-                    sub_tag = GPSTAGS.get(t, t)
-                    gps_info[sub_tag] = value[t]
+        # 시간 정보
+        shot_dt_str = str(tags.get("EXIF DateTimeOriginal") or tags.get("Image DateTime", ""))
+        if shot_dt_str:
+            shot_date_str = shot_dt_str[:10].replace(":", "-")
+            shot_time_str = shot_dt_str[11:]
+            shot_dt_str = f"{shot_date_str} {shot_time_str}"
 
-        # 시간 정보 추출
-        shot_dt_str = exif_info.get("DateTimeOriginal") or exif_info.get("DateTime")
-        shot_date_str = shot_dt_str[:10].replace(":", "-")
-        shot_time_str = shot_dt_str[11:]
-        shot_dt_str = f"{shot_date_str} {shot_time_str}"
+        lat_tag = tags.get("GPS GPSLatitude")
+        lon_tag = tags.get("GPS GPSLongitude")
+        lat_ref = str(tags.get("GPS GPSLatitudeRef", "N"))
+        lon_ref = str(tags.get("GPS GPSLongitudeRef", "E"))
 
-        if "GPSLatitude" in gps_info and "GPSLongitude" in gps_info:
-            x = _get_decimal_from_dms_(gps_info["GPSLongitude"], gps_info["GPSLongitudeRef"])
-            y = _get_decimal_from_dms_(gps_info["GPSLatitude"], gps_info["GPSLatitudeRef"])
-            if x is None or y is None:
-                return {"x": None, "y": None, "dt": shot_dt_str, "error": "GPS 변환 실패"}, ""
-            return {"x": x, "y": y, "dt": shot_dt_str}, ""
-        else:
+        if not lat_tag or not lon_tag:
             return {"x": None, "y": None, "dt": shot_dt_str, "error": "GPS 정보가 없습니다."}, ""
+
+        def ifd_to_decimal(tag, ref):
+            vals = tag.values
+            degrees = float(vals[0].num) / float(vals[0].den)
+            minutes = float(vals[1].num) / float(vals[1].den) / 60.0
+            seconds = float(vals[2].num) / float(vals[2].den) / 3600.0
+            result = degrees + minutes + seconds
+            return -result if ref in ['S', 'W'] else result
+
+        x = ifd_to_decimal(lon_tag, lon_ref)
+        y = ifd_to_decimal(lat_tag, lat_ref)
+
+        return {"x": x, "y": y, "dt": shot_dt_str}, ""
+
     except Exception as e:
         return None, str(e)
 
