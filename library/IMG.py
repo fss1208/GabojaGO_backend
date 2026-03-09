@@ -9,14 +9,34 @@ logger = logging.getLogger(__name__)
 
 ##################################################################################################################################################
 
-def _get_decimal_from_dms_(dms, ref):
-    degrees = dms[0]
-    minutes = dms[1] / 60.0
-    seconds = dms[2] / 3600.0
+# def _get_decimal_from_dms_(dms, ref):
+#     degrees = dms[0]
+#     minutes = dms[1] / 60.0
+#     seconds = dms[2] / 3600.0
+#     if ref in ['S', 'W']:
+#         return -(degrees + minutes + seconds)
+#     return degrees + minutes + seconds
 
-    if ref in ['S', 'W']:
-        return -(degrees + minutes + seconds)
-    return degrees + minutes + seconds
+def _get_decimal_from_dms_(dms, ref):
+    try:
+        result = []
+        for value in dms:
+            # IFDRational 또는 (분자, 분모) 튜플 모두 처리
+            if isinstance(value, tuple):
+                numerator, denominator = value
+                result.append(float(numerator) / float(denominator) if denominator != 0 else 0.0)
+            else:
+                # IFDRational, float, int 등 바로 변환
+                result.append(float(value))
+        degrees, minutes, seconds = result
+        decimal = degrees + (minutes / 60.0) + (seconds / 3600.0)
+        # S(남위), W(서경)이면 음수
+        if ref in ("S", "W"):
+            decimal = -decimal
+        return decimal
+    except Exception as e:
+        print(f"DMS 변환 오류: {e}, 입력값: {dms}, ref: {ref}")
+        return None
 
 def get_exif_location(image_path):
     """
@@ -47,6 +67,8 @@ def get_exif_location(image_path):
         if "GPSLatitude" in gps_info and "GPSLongitude" in gps_info:
             x = _get_decimal_from_dms_(gps_info["GPSLongitude"], gps_info["GPSLongitudeRef"])
             y = _get_decimal_from_dms_(gps_info["GPSLatitude"], gps_info["GPSLatitudeRef"])
+            if x is None or y is None:
+                return {"x": None, "y": None, "dt": shot_dt_str, "error": "GPS 변환 실패"}, ""
             return {"x": x, "y": y, "dt": shot_dt_str}, ""
         else:
             return {"x": None, "y": None, "dt": shot_dt_str, "error": "GPS 정보가 없습니다."}, ""
