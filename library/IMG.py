@@ -86,7 +86,6 @@ def get_exif_location(image_path):
     try:
         with open(image_path, 'rb') as f:
             tags = exifread.process_file(f, details=False)
-
         if not tags:
             return None, "EXIF 데이터가 없습니다."
 
@@ -101,20 +100,23 @@ def get_exif_location(image_path):
         lon_tag = tags.get("GPS GPSLongitude")
         lat_ref = str(tags.get("GPS GPSLatitudeRef", "N"))
         lon_ref = str(tags.get("GPS GPSLongitudeRef", "E"))
-
         if not lat_tag or not lon_tag:
             return {"x": None, "y": None, "dt": shot_dt_str, "error": "GPS 정보가 없습니다."}, ""
 
         def ifd_to_decimal(tag, ref):
             vals = tag.values
-            degrees = float(vals[0].num) / float(vals[0].den)
-            minutes = float(vals[1].num) / float(vals[1].den) / 60.0
-            seconds = float(vals[2].num) / float(vals[2].den) / 3600.0
+            def safe_div(num, den):
+                return float(num) / float(den) if den != 0 else 0.0
+            degrees = safe_div(vals[0].num, vals[0].den)
+            minutes = safe_div(vals[1].num, vals[1].den) / 60.0
+            seconds = safe_div(vals[2].num, vals[2].den) / 3600.0
             result = degrees + minutes + seconds
             return -result if ref in ['S', 'W'] else result
 
         x = ifd_to_decimal(lon_tag, lon_ref)
         y = ifd_to_decimal(lat_tag, lat_ref)
+        if (x == 0.0) and (y == 0.0):
+            return {"x": None, "y": None, "dt": shot_dt_str, "error": "GPS 값이 비어있습니다."}, ""
 
         return {"x": x, "y": y, "dt": shot_dt_str}, ""
 
