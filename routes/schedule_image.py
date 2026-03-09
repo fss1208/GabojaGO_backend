@@ -38,7 +38,7 @@ def CreateCloudFlare():
 #################################################################################################################
 
 @router.post("/append", summary="이미지 정보 추가", response_model=ScheduleImageFrontModel)
-def append_schedule_image(request: Request, iSchedulePK: int, iLocationPK: int, file: UploadFile = File(...), auth: HTTPAuthorizationCredentials = Depends(security)):
+async def append_schedule_image(request: Request, iSchedulePK: int, iLocationPK: int, file: UploadFile = File(...), auth: HTTPAuthorizationCredentials = Depends(security)):
     """
     사용자가 업로드 요청하는 이미지 파일 정보 추가 : Cloudflare 업로드 및 Database 저장 (image, schedule_image)
     - **iSchedulePK: int** 필수 입력 (ScheduleTable.iPK > 0)
@@ -90,8 +90,8 @@ def append_schedule_image(request: Request, iSchedulePK: int, iLocationPK: int, 
                 iLocationPK=iLocationPK,
                 strFile=cf_upload_file,
                 dtImage=datetime.strptime(img_extract_dict.get("dt"), "%Y-%m-%d %H:%M:%S"),
-                ptLongitude=str(img_extract_dict.get("x")),
-                ptLatitude=str(img_extract_dict.get("y")),
+                ptLongitude=str(img_extract_dict.get("x")) if img_extract_dict.get("x") else "0.0",
+                ptLatitude=str(img_extract_dict.get("y")) if img_extract_dict.get("y") else "0.0",
                 dtCreate=datetime.now()
             )
             result = DB.EXECUTE(cursor, ImageTable.TO_INSERT_QUERY(image_model))
