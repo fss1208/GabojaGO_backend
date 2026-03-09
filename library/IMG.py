@@ -10,6 +10,21 @@ logger = logging.getLogger(__name__)
 
 ##################################################################################################################################################
 
+def debug_gps(image_path):
+    image = Image.open(image_path)
+    exif_data = image._getexif()
+    
+    print("=== 전체 EXIF 태그 ===")
+    for tag, value in exif_data.items():
+        tag_name = TAGS.get(tag, tag)
+        print(f"{tag_name}({tag}): {repr(value)}")
+    
+    print("\n=== GPSInfo raw ===")
+    for tag, value in exif_data.items():
+        if TAGS.get(tag) == "GPSInfo":
+            for t, v in value.items():
+                print(f"  {GPSTAGS.get(t, t)}({t}): {repr(v)}")
+
 def _get_decimal_from_dms_(dms, ref):
     def to_float(val):
         # IFDRational 명시적 처리 (float() 변환 시 NaN 가능성 차단)
