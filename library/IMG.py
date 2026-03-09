@@ -3,36 +3,30 @@ import folium, webbrowser
 
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
+from PIL.TiffImagePlugin import IFDRational
 
 import logging
 logger = logging.getLogger(__name__)
 
 ##################################################################################################################################################
 
-# def _get_decimal_from_dms_(dms, ref):
-#     degrees = dms[0]
-#     minutes = dms[1] / 60.0
-#     seconds = dms[2] / 3600.0
-#     if ref in ['S', 'W']:
-#         return -(degrees + minutes + seconds)
-#     return degrees + minutes + seconds
-
 def _get_decimal_from_dms_(dms, ref):
-    try:
-        # IFDRational(분모 0) 또는 튜플 (분자, 분모) 모두 안전하게 float 변환
-        def to_float(val):
-            if isinstance(val, tuple):
-                return float(val[0]) / float(val[1]) if val[1] != 0 else 0.0
-            return float(val)  # IFDRational, int, float 모두 처리
-        degrees = to_float(dms[0])
-        minutes = to_float(dms[1]) / 60.0
-        seconds = to_float(dms[2]) / 3600.0
-        if ref in ['S', 'W']:
-            return -(degrees + minutes + seconds)
-        return degrees + minutes + seconds
-    except Exception as e:
-        print(f"DMS 변환 오류: {e}, 입력값: {dms}, ref: {ref}")
-        return None
+    def to_float(val):
+        # IFDRational 명시적 처리 (float() 변환 시 NaN 가능성 차단)
+        if isinstance(val, IFDRational):
+            if val.denominator == 0:
+                return 0.0
+            return float(val.numerator) / float(val.denominator)
+        # (분자, 분모) 튜플 처리
+        elif isinstance(val, tuple):
+            return float(val[0]) / float(val[1]) if val[1] != 0 else 0.0
+        return float(val)
+    degrees = to_float(dms[0])
+    minutes = to_float(dms[1]) / 60.0
+    seconds = to_float(dms[2]) / 3600.0
+    if ref in ['S', 'W']:
+        return -(degrees + minutes + seconds)
+    return degrees + minutes + seconds
 
 def get_exif_location(image_path):
     """
