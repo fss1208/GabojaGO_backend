@@ -8,14 +8,16 @@ from models.schedule_model import SchedulePreparationModel
 class SchedulePreparationTable(BaseTable):
 
     NAME = "schedule_preparation"
+    MODEL_COLUMNS = "iPK,iScheduleFK,iUserFK,strName,bCheck"
 
     @staticmethod
     def TO_MODEL(row: tuple) -> SchedulePreparationModel:
         return SchedulePreparationModel(
             iPK=row[0],
             iScheduleFK=row[1],
-            strName=row[2],
-            bCheck=row[3]
+            iUserFK=row[2],
+            strName=row[3],
+            bCheck=row[4]
         )
 
     @staticmethod
@@ -28,23 +30,26 @@ class SchedulePreparationTable(BaseTable):
             CREATE TABLE {SchedulePreparationTable.NAME} (
                 iPK INT AUTO_INCREMENT PRIMARY KEY,
                 iScheduleFK INT NOT NULL,
+                iUserFK INT NOT NULL,
                 strName VARCHAR(1024) NOT NULL,
                 bCheck BOOLEAN NOT NULL DEFAULT FALSE,
                 dtCreate DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (iScheduleFK) REFERENCES schedule(iPK) ON DELETE CASCADE
+                FOREIGN KEY (iScheduleFK) REFERENCES schedule(iPK) ON DELETE CASCADE,
+                FOREIGN KEY (iUserFK) REFERENCES user(iPK) ON DELETE CASCADE
             );"""
 
     @staticmethod
     def TO_SELECT_MODEL_QUERY(iSchedulePreparationPK: int) -> str:
-        return f"SELECT iPK,iScheduleFK,strName,bCheck FROM {SchedulePreparationTable.NAME} WHERE iPK={iSchedulePreparationPK}"
+        return f"SELECT {SchedulePreparationTable.MODEL_COLUMNS} FROM {SchedulePreparationTable.NAME} WHERE iPK={iSchedulePreparationPK}"
 
     @staticmethod
-    def TO_SELECT_LIST_QUERY(iScheduleFK: int) -> str:
-        return f"SELECT iPK,iScheduleFK,strName,bCheck FROM {SchedulePreparationTable.NAME} WHERE iScheduleFK={iScheduleFK}"
+    def TO_SELECT_LIST_QUERY(iScheduleFK: int, iUserFK: int = 0) -> str:
+        strUserFilter = f" AND iUserFK={iUserFK}" if (iUserFK != 0) else ""
+        return f"SELECT {SchedulePreparationTable.MODEL_COLUMNS} FROM {SchedulePreparationTable.NAME} WHERE iScheduleFK={iScheduleFK}{strUserFilter}"
 
     @staticmethod
     def TO_INSERT_QUERY(spm: SchedulePreparationModel) -> str:
-        return f"INSERT INTO {SchedulePreparationTable.NAME} (iScheduleFK,strName) VALUES ({spm.iScheduleFK},'{spm.strName}')"
+        return f"INSERT INTO {SchedulePreparationTable.NAME} (iScheduleFK,iUserFK,strName) VALUES ({spm.iScheduleFK},{spm.iUserFK},'{spm.strName}')"
 
     @staticmethod
     def TO_UPDATE_QUERY(spm: SchedulePreparationModel) -> str:
