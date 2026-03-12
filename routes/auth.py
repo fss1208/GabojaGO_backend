@@ -113,6 +113,33 @@ def search_user(strUserName: str, request: Request, auth: HTTPAuthorizationCrede
     logger.info(LOG.TO_MESSAGE(request, request_user, "완료", f"검색어={strUserName}, 검색결과={len(user_list)}명", dt))
     return UserListModel(user_list=user_list)
 
+@router.get("/user/get", summary="사용자 정보 조회", response_model=UserModel)
+def get_user(iUserPK: int, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
+    """
+    사용자 정보 조회
+    - **iUserPK**:int 필수 입력
+    """
+    dt = datetime.now()
+    user_model = AUTH_JWT.TO_USER_MODEL(auth)
+    request_user = LOG.TO_REQUEST_USER(request)
+    request_log = f"iUserPK:{iUserPK}"
+    logger.info(LOG.TO_MESSAGE(request, request_user, "요청", request_log))
+    with DB.CONNECT() as connection:
+        with connection.cursor() as cursor:
+            result = DB.EXECUTE(cursor, UserTable.TO_SELECT_PK_QUERY(iUserPK))
+            if (result != 1):
+                msg = f"사용자 정보 없음, {request_log}"
+                logger.error(LOG.TO_MESSAGE(request, request_user, "실패!", msg, dt))
+                raise HTTPException(status_code=500, detail=msg)
+            row_tuple = cursor.fetchone()
+            user_model = UserTable.TO_MODEL(row_tuple)
+            user_model.strUserPW = ""
+            user_model.strPhone = ""
+            user_model.strAddress = ""
+            user_model.strImageFile = ""
+    logger.info(LOG.TO_MESSAGE(request, request_user, "완료", user_model.to_log(), dt))
+    return user_model
+
 @router.get("/test", summary="사용자 인증 확인")
 def test(auth: HTTPAuthorizationCredentials = Depends(security)):
     """

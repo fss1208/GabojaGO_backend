@@ -61,6 +61,10 @@ class UserTable(BaseTable):
         return f"SELECT * FROM {UserTable.NAME} WHERE strName LIKE '%{strUserName}%'"
 
     @staticmethod
+    def TO_SELECT_PK_QUERY(iUserPK: int) -> str:
+        return f"SELECT * FROM {UserTable.NAME} WHERE iPK={iUserPK}"
+
+    @staticmethod
     def TO_INSERT_QUERY(um: UserModel) -> str:
         return f"INSERT INTO {UserTable.NAME} (strUserID,strUserPW,strName,strEmail,strPhone,strAddress,strImageFile) " + \
                f"VALUES ('{um.strUserID}','{um.strUserPW}','{um.strName}','{um.strEmail}','{um.strPhone}','{um.strAddress}','{um.strImageFile}')"
