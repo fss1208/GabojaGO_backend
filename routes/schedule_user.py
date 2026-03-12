@@ -2,11 +2,10 @@ from fastapi import APIRouter, Request
 from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from database.user_table import UserTable
 from database.schedule_table import ScheduleTable
+from database.schedule.schedule_user_view import ScheduleUserView
 from database.schedule.schedule_user_table import ScheduleUserTable
-from models.schedule_model import ScheduleUserModel
-from models.auth_model import UserListModel
+from models.schedule_model import ScheduleUserModel, ScheduleUserListModel
 
 from library.JWT import AUTH_JWT
 from library.LOG import LOG
@@ -83,7 +82,7 @@ def remove_schedule_user(iScheduleUserPK: int, request: Request, auth: HTTPAutho
     logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "완료", request_log, dt))
     return {"iScheduleUserPK": iScheduleUserPK}
 
-@router.get("/list", summary="동행자 목록 조회", response_model=UserListModel)
+@router.get("/list", summary="동행자 목록 조회", response_model=ScheduleUserListModel)
 def list_schedule(iSchedulePK: int, request: Request, auth: HTTPAuthorizationCredentials = Depends(security)):
     """
     사용자가 요청하는 일정에 등록된 동행자 목록 조회
@@ -95,12 +94,12 @@ def list_schedule(iSchedulePK: int, request: Request, auth: HTTPAuthorizationCre
     logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "요청", request_log))
     with DB.CONNECT() as connection:
         with connection.cursor() as cursor:
-            result = DB.EXECUTE(cursor, UserTable.TO_SELECT_SUB_QUERY(ScheduleUserTable.TO_SELECT_USER_QUERY(iSchedulePK)))
+            result = DB.EXECUTE(cursor, ScheduleUserView.TO_SELECT_LIST_QUERY(iSchedulePK))
             rows_tuple = cursor.fetchall()
             if (result != len(rows_tuple)):
                 msg = f"데이터 개수 불일치, {request_log}, 요청:{result}, 실제:{len(rows_tuple)}"
                 logger.error(LOG.TO_MESSAGE(request, login_user.to_log(), "에러", msg, dt))
                 raise HTTPException(status_code=500, detail=msg)
-            user_list_model = UserListModel(user_list=UserTable.TO_MODEL_LIST(rows_tuple))
+            schedule_user_list = ScheduleUserView.TO_MODEL_LIST(rows_tuple)
     logger.info(LOG.TO_MESSAGE(request, login_user.to_log(), "완료", f"{request_log}, {result}건", dt))
-    return user_list_model
+    return ScheduleUserListModel(schedule_user_list=schedule_user_list)

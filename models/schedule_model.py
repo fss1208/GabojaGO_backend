@@ -131,3 +131,9 @@ class ScheduleUserModel(BaseModel):
 
     def to_log(self) -> str:
         return f"{self.iPK}:{self.iScheduleFK}:{self.iUserFK}"
+
+class ScheduleUserFrontModel(ScheduleUserModel):
+    user: UserModel = Field(..., description="사용자 정보")
+
+class ScheduleUserListModel(BaseModel):
+    schedule_user_list: list[ScheduleUserFrontModel] = Field(..., description="일정에 등록된 사용자 목록")
