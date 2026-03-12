@@ -3,14 +3,15 @@ from typing import Optional
 from datetime import datetime
 
 class KakaoMapSearchRequestModel(BaseModel):
-    query: str = Field(..., max_length=255, example="성산일출봉")    # 검색어
-    category_group_code: Optional[str] = Field(None, example="AT4") # 카테고리 그룹 코드
-    x: Optional[str] = Field(None, example="126.9194")              # 경도 (Longitude)
-    y: Optional[str] = Field(None, example="33.4918")               # 위도 (Latitude)
-    radius: Optional[int] = Field(None, example=1000)               # 반경 (단위: meter, 최소:0, 최대:20,000)
-    rect: Optional[str] = Field(None, example="1.2,3.48,5.6,7.8")   # 두 점의 좌표로 만든 범위 (좌측X, 좌측Y, 우측X, 우측Y)
-    page: Optional[int] = Field(None, example=1)                    # 결과 페이지 번호 (최소:1, 최대:45, 기본값:1)
-    size: Optional[int] = Field(None, ge=1, le=15, example=15)      # 한 페이지에 보여질 문서의 개수 (최소:1, 최대:15, 기본값:15)
+    query: str = Field(..., max_length=255, example="성산일출봉", description="검색어")
+    category_group_code: Optional[str] = Field(None, example="AT4", description="AT4:관광명소, AD5:숙박, FD6:음식점, PK6:주차장, OL7:주유소, SW8:지하철역, CE7:카페, CS2:편의점, MT1:대형마트 ...")
+    x: Optional[str] = Field(None, example="126.9194", description="경도 (Longitude)")
+    y: Optional[str] = Field(None, example="33.4918", description="위도 (Latitude)")
+    radius: Optional[int] = Field(None, example=1000, description="위경도 기준 검색 반경 (단위: meter, 최소:0, 최대:20,000)")
+    rect: Optional[str] = Field(None, example="1.2,3.48,5.6,7.8", description="두 점의 좌표로 만든 범위 (좌측X, 좌측Y, 우측X, 우측Y)")
+    page: Optional[int] = Field(None, example=1, description="결과 페이지 번호 (최소:1, 최대:45, 기본값:1)")
+    size: Optional[int] = Field(None, ge=1, le=15, example=15, description="한 페이지에 보여질 문서의 개수 (최소:1, 최대:15, 기본값:15)")
+    sort: Optional[str] = Field(None, example="accuracy", description="accuracy:정확도순(기본값), distance:거리순")
 
 class LocationModel(BaseModel):
     iPK: int = Field(..., example=2062374957)
